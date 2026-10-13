@@ -1,0 +1,14 @@
+# Supabase CLI の設定(ローカル開発用。本番の設定はダッシュボードで行う)
+project_id = "funkies-stats"
+
+[db]
+major_version = 17
+
+[auth]
+site_url = "http://localhost:3000"
+# 編集者のアカウントはダッシュボードから作るので、自由な新規登録は受け付けない
+enable_signup = false
+
+[auth.email]
+# 注意: ここの enable_signup を false にするとメールでのログイン自体が無効になる
+enable_confirmations = false
