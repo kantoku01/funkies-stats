@@ -1,7 +1,5 @@
 -- Supabase を使わずに素の PostgreSQL でマイグレーションを検証するための最小スタブ。
 -- 本番の Supabase には流さないこと(scripts/test-db.sh からのみ使う)。
-create role anon nologin;
-create role authenticated nologin;
 create schema auth;
 create table auth.users (id uuid primary key);
 create function auth.uid() returns uuid language sql stable as $$

@@ -15,12 +15,19 @@ src/
   components/       共通コンポーネント
   lib/supabase/     Supabase クライアント(ブラウザ用 / サーバー用 / proxy 用)
   lib/auth.ts       ログイン中の編集者の取得
+  lib/stats/        成績計算(打数・率・規定打席・シーズン集計)。計算はすべてここに集める
+  lib/migration/    2026年移行データの読み込み
   proxy.ts          セッション更新と /admin の保護(旧 middleware)
   types/database.ts DB の型
+data/
+  baseline-2026.csv 2026年 9/13 時点のスプレッドシートの累計
 supabase/
   migrations/       テーブル定義と RLS
-  tests/            マイグレーションの検証 SQL
-scripts/test-db.sh  素の PostgreSQL でマイグレーションと RLS を検証
+  seed.sql          2026年の初期値(data/baseline-2026.csv から生成)
+  tests/            マイグレーションと seed の検証 SQL
+scripts/
+  test-db.sh        素の PostgreSQL でマイグレーション・RLS・seed を検証
+  generate-seed.ts  CSV から seed.sql を生成
 ```
 
 ## セットアップ
@@ -34,7 +41,18 @@ scripts/test-db.sh  素の PostgreSQL でマイグレーションと RLS を検�
    - 「Allow new users to sign up」を **オフ**(勝手な新規登録を防ぐ)
    - Email プロバイダーは **オンのまま**(オフにするとログインできなくなる)
 
-### 2. 編集者を追加する
+### 2. 2026年の初期値を入れる
+
+**SQL Editor** で `supabase/seed.sql` を実行する(選手21人・背番号・9/13 時点の累計・チーム成績)。
+
+- 元データは `data/baseline-2026.csv`。CSV を直したら `npm run db:seed:generate` で seed.sql を作り直す
+- 氏名は暫定で名字のみ。フルネームが分かったら SQL Editor で更新する(seed は固定 ID なので CSV の行順で指定できる):
+
+  ```sql
+  update public.players set full_name = '宮川 ○○' where id = '00000000-0000-4000-8000-000000000001';
+  ```
+
+### 3. 編集者を追加する
 
 1. **Authentication > Users > Add user > Create new user** でメールアドレスとパスワードを登録
    (「Auto Confirm User」にチェック)
@@ -46,7 +64,7 @@ scripts/test-db.sh  素の PostgreSQL でマイグレーションと RLS を検�
 
 編集者から外すときは `delete from public.editors where user_id = '<UID>';`。
 
-### 3. ローカルで動かす
+### 4. ローカルで動かす
 
 ```bash
 cp .env.example .env.local   # Project Settings > API Keys の URL と Publishable key を入れる
@@ -61,8 +79,9 @@ npm run dev                  # http://localhost:3000
 | `npm run dev` | 開発サーバー |
 | `npm run build` | 本番ビルド |
 | `npm run lint` / `npm run typecheck` | ESLint / 型チェック |
-| `npm test` | 単体テスト(Vitest) |
-| `npm run test:db` | マイグレーションと RLS の検証(PostgreSQL 15 以上が必要) |
+| `npm test` | 単体テスト(Vitest)。移行データがシートの値と一致するかもここで確認 |
+| `npm run test:db` | マイグレーション・RLS・seed の検証(PostgreSQL 15 以上が必要) |
+| `npm run db:seed:generate` | `data/baseline-2026.csv` から `supabase/seed.sql` を生成 |
 
 Docker があれば `npx supabase start` でローカルに Supabase 一式を立ち上げることもできる
 (`supabase/config.toml` で新規登録は無効になっている)。

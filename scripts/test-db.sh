@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
-# 一時的な PostgreSQL を立ち上げ、Supabase スタブ + マイグレーション + RLS テストを流す。
+# 一時的な PostgreSQL を立ち上げ、Supabase スタブ + マイグレーションに対して
+#   1. 制約と RLS のテスト (supabase/tests/rls_test.sql)
+#   2. seed の投入テスト   (supabase/seed.sql + supabase/tests/seed_test.sql)
+# を別々のデータベースで流す。
 # 必要なもの: PostgreSQL 15 以上のサーバー (initdb / pg_ctl) と psql
 set -euo pipefail
 
@@ -20,10 +23,25 @@ trap cleanup EXIT
 "${RUN_AS[@]}" "$PG_BIN/initdb" -D "$WORK/data" -U postgres -A trust >/dev/null
 "${RUN_AS[@]}" "$PG_BIN/pg_ctl" -D "$WORK/data" -o "-p $PORT -k $WORK -c listen_addresses=''" -l "$WORK/log" -w start >/dev/null
 
-PSQL=(psql -h "$WORK" -p "$PORT" -U postgres -d postgres -v ON_ERROR_STOP=1 -q)
-"${PSQL[@]}" -f "$ROOT/supabase/tests/supabase_stub.sql"
-for f in "$ROOT"/supabase/migrations/*.sql; do
-  echo "migrate: $(basename "$f")"
-  "${PSQL[@]}" -f "$f"
-done
-"${PSQL[@]}" -o /dev/null -f "$ROOT/supabase/tests/rls_test.sql" 2>&1 | sed "s/^psql:[^ ]* NOTICE:  /  /"
+psql_db() { psql -h "$WORK" -p "$PORT" -U postgres -d "$1" -v ON_ERROR_STOP=1 -q "${@:2}"; }
+run_test() { psql_db "$1" -o /dev/null -f "$2" 2>&1 | sed "s/^psql:[^ ]* NOTICE:  /  /"; }
+
+# スタブ用のロールはクラスタ全体で共通なので最初に1回だけ作る
+psql_db postgres -c "create role anon nologin; create role authenticated nologin;"
+
+setup_db() {
+  psql_db postgres -c "create database $1"
+  psql_db "$1" -f "$ROOT/supabase/tests/supabase_stub.sql"
+  for f in "$ROOT"/supabase/migrations/*.sql; do
+    psql_db "$1" -f "$f"
+  done
+}
+
+echo "== 制約と RLS"
+setup_db rls_test
+run_test rls_test "$ROOT/supabase/tests/rls_test.sql"
+
+echo "== seed"
+setup_db seed_test
+psql_db seed_test -f "$ROOT/supabase/seed.sql"
+run_test seed_test "$ROOT/supabase/tests/seed_test.sql"
