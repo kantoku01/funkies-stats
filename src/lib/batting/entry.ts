@@ -28,6 +28,24 @@ export const RESULT_LABEL = Object.fromEntries(RESULT_BUTTONS.map((b) => [b.resu
   string
 >;
 
+// 表の中で使う短い表記
+export const RESULT_SHORT: Record<PlateAppearanceResult, string> = {
+  single: "単",
+  double: "二",
+  triple: "三",
+  home_run: "本",
+  walk: "四",
+  hbp: "死",
+  sac_fly: "犠飛",
+  sac_bunt: "犠打",
+  out: "凡",
+};
+
+export const RESULT_KIND = Object.fromEntries(RESULT_BUTTONS.map((b) => [b.result, b.kind])) as Record<
+  PlateAppearanceResult,
+  "hit" | "walk" | "out"
+>;
+
 // 入力チェック(警告のみ。保存はできる)
 export function battingWarnings(entries: BattingEntry[]): string[] {
   const warnings: string[] = [];

@@ -11,7 +11,7 @@
 
 ```
 src/
-  app/              画面(/ 成績一覧, /login, /admin 編集者向け)
+  app/              画面(/ 成績一覧, /games 試合, /players 個人成績, /login, /admin 編集者向け)
   components/       共通コンポーネント
   lib/supabase/     Supabase クライアント(ブラウザ用 / サーバー用 / proxy 用)
   lib/auth.ts       ログイン中の編集者の取得

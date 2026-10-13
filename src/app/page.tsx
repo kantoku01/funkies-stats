@@ -74,9 +74,9 @@ async function SeasonStatsView({ searchParams }: { searchParams: PageProps<"/">[
         <span>規定打席 {formatQualifyingPa(stats.team.games)}</span>
       </p>
 
-      <LeaderboardTable groups={groups} team={toTeamRow(t, stats.team.games)} />
+      <LeaderboardTable groups={groups} team={toTeamRow(t, stats.team.games)} season={season} />
 
-      <p className="text-xs text-slate-500">列の見出しをタップすると並べ替えできます。表は横にスクロールできます。</p>
+      <p className="text-xs text-slate-500">列の見出しをタップすると並べ替えできます。氏名をタップすると個人成績を表示します。</p>
     </section>
   );
 }

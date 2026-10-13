@@ -38,10 +38,7 @@ async function GamesView({ searchParams }: { searchParams: PageProps<"/games">["
       </div>
       {season !== null && <SeasonTabs seasons={seasons} current={season} href={(s) => `/games?season=${s}`} />}
 
-      {/* 編集者なら各試合から編集画面へ進める */}
-      <Suspense fallback={<GameList games={games} editable={false} />}>
-        <EditableGameList games={games} />
-      </Suspense>
+      <GameList games={games} />
     </section>
   );
 }
@@ -55,11 +52,7 @@ async function AddGameButton() {
   );
 }
 
-async function EditableGameList({ games }: { games: Games }) {
-  return <GameList games={games} editable={Boolean(await getCurrentEditor())} />;
-}
-
-function GameList({ games, editable }: { games: Games; editable: boolean }) {
+function GameList({ games }: { games: Games }) {
   if (games.length === 0) {
     return <p className="text-slate-600">アプリで登録した試合はまだありません。</p>;
   }
@@ -76,16 +69,12 @@ function GameList({ games, editable }: { games: Games; editable: boolean }) {
         );
         return (
           <li key={g.id}>
-            {editable ? (
-              <Link href={`/admin/games/${g.id}`} className="flex min-h-12 items-center gap-3 px-3 hover:bg-slate-50">
-                {body}
-                <span aria-hidden className="text-slate-400">
-                  ›
-                </span>
-              </Link>
-            ) : (
-              <div className="flex min-h-12 items-center gap-3 px-3">{body}</div>
-            )}
+            <Link href={`/games/${g.id}`} className="flex min-h-12 items-center gap-3 px-3 hover:bg-slate-50">
+              {body}
+              <span aria-hidden className="text-slate-400">
+                ›
+              </span>
+            </Link>
           </li>
         );
       })}

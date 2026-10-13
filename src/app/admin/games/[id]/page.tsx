@@ -22,9 +22,14 @@ export default async function GamePage({ params }: PageProps<"/admin/games/[id]"
 
   return (
     <section className="space-y-5">
-      <Link href={`/games?season=${g.season}`} className="text-sm text-blue-800">
-        ‹ 試合一覧
-      </Link>
+      <div className="flex justify-between text-sm">
+        <Link href={`/games?season=${g.season}`} className="text-blue-800">
+          ‹ 試合一覧
+        </Link>
+        <Link href={`/games/${g.id}`} className="text-blue-800">
+          試合詳細を見る ›
+        </Link>
+      </div>
 
       <div className="flex items-center gap-3 rounded-md border border-slate-200 bg-white p-4">
         <GameResultBadge result={g.result} />

@@ -74,7 +74,7 @@ export default async function BattingPage({ params, searchParams }: PageProps<"/
         players={list}
         initial={initial}
         startPlayerId={requested ?? firstEmpty}
-        finishHref={`/admin/games/${id}`}
+        finishHref={`/games/${id}`}
       />
     </section>
   );

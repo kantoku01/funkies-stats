@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import {
   STAT_COLUMNS,
@@ -35,7 +36,15 @@ function sortRows(rows: LeaderboardRow[], sort: Sort): LeaderboardRow[] {
 const STICKY_NUMBER = "sticky left-0 z-10 w-10 min-w-10";
 const STICKY_NAME = "sticky left-10 z-10 min-w-24 max-w-32 truncate border-r border-slate-200";
 
-export function LeaderboardTable({ groups, team }: { groups: LeaderboardGroup[]; team: TeamTotalsRow }) {
+export function LeaderboardTable({
+  groups,
+  team,
+  season,
+}: {
+  groups: LeaderboardGroup[];
+  team: TeamTotalsRow;
+  season: number;
+}) {
   const [sort, setSort] = useState<Sort>(DEFAULT_SORT);
 
   const onSort = (key: SortKey) =>
@@ -99,7 +108,9 @@ export function LeaderboardTable({ groups, team }: { groups: LeaderboardGroup[];
                     {row.number}
                   </td>
                   <th scope="row" className={`${STICKY_NAME} bg-white px-2 py-2 text-left font-medium group-hover:bg-slate-50`}>
-                    {row.name}
+                    <Link href={`/players/${row.playerId}?season=${season}`} className="block truncate text-blue-900">
+                      {row.name}
+                    </Link>
                   </th>
                   {STAT_COLUMNS.map((c) => (
                     <td
