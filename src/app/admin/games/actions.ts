@@ -102,6 +102,6 @@ export async function saveParticipants(_prev: ParticipantsState, formData: FormD
   }
 
   updateTag(STATS_TAG);
-  // 入力の流れ: 参加者を登録 → 打撃入力(ステップ6で追加。それまでは試合の画面に戻る)
-  redirect(`/admin/games/${gameId}`);
+  // 入力の流れ: 参加者を登録 → 打撃入力
+  redirect(plan.upserts.length > 0 ? `/admin/games/${gameId}/batting` : `/admin/games/${gameId}`);
 }

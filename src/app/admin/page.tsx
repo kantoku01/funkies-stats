@@ -1,10 +1,9 @@
 import Link from "next/link";
 
-// 編集メニュー。未実装の画面はステップ6〜7で追加する
+// 編集メニュー。未実装の画面はステップ7で追加する
 const menu = [
   { label: "試合を追加", href: "/admin/games/new", step: null },
-  { label: "試合一覧(編集・参加者登録)", href: "/games", step: null },
-  { label: "打撃入力", href: null, step: "ステップ6" },
+  { label: "試合一覧(編集・参加者登録・打撃入力)", href: "/games", step: null },
   { label: "選手管理(背番号)", href: "/admin/players", step: null },
   { label: "CSV書き出し", href: null, step: "ステップ7" },
 ];

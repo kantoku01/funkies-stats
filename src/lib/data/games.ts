@@ -54,3 +54,17 @@ export async function getParticipantsForAdmin(gameId: string) {
   for (const pa of plateAppearances) paCount.set(pa.player_id, (paCount.get(pa.player_id) ?? 0) + 1);
   return participants.map((p) => ({ ...p, paCount: paCount.get(p.player_id) ?? 0 }));
 }
+
+// 打撃入力画面用: その試合の全打席(選手ごと・打席順)
+export async function getPlateAppearancesForAdmin(gameId: string) {
+  const supabase = await createClient();
+  return fetchAll((from, to) =>
+    supabase
+      .from("plate_appearances")
+      .select("player_id, seq, result, rbi, stolen_bases")
+      .eq("game_id", gameId)
+      .order("player_id")
+      .order("seq")
+      .range(from, to),
+  );
+}

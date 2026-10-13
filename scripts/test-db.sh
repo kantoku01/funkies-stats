@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # 一時的な PostgreSQL を立ち上げ、Supabase スタブ + マイグレーションに対して
 #   1. 制約と RLS のテスト (supabase/tests/rls_test.sql)
-#   2. seed の投入テスト   (supabase/seed.sql + supabase/tests/seed_test.sql)
+#   2. 打撃入力の保存     (supabase/tests/batting_test.sql)
+#   3. seed の投入テスト   (supabase/seed.sql + supabase/tests/seed_test.sql)
 # を別々のデータベースで流す。
 # 必要なもの: PostgreSQL 15 以上のサーバー (initdb / pg_ctl) と psql
 set -euo pipefail
@@ -40,6 +41,10 @@ setup_db() {
 echo "== 制約と RLS"
 setup_db rls_test
 run_test rls_test "$ROOT/supabase/tests/rls_test.sql"
+
+echo "== 打撃入力の保存"
+setup_db batting_test
+run_test batting_test "$ROOT/supabase/tests/batting_test.sql"
 
 echo "== seed"
 setup_db seed_test

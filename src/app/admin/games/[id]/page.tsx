@@ -17,7 +17,7 @@ export default async function GamePage({ params }: PageProps<"/admin/games/[id]"
   const steps = [
     { href: `/admin/games/${g.id}/edit`, title: "試合情報", detail: "日付・相手・スコア" },
     { href: `/admin/games/${g.id}/participants`, title: "参加者", detail: `${participants.length}人` },
-    { href: null, title: "打撃入力", detail: `${paCount}打席(ステップ6で追加)` },
+    { href: `/admin/games/${g.id}/batting`, title: "打撃入力", detail: `${paCount}打席` },
   ];
 
   return (

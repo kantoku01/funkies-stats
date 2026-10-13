@@ -186,6 +186,15 @@ export type Database = {
     Views: { [_ in never]: never };
     Functions: {
       is_editor: { Args: Record<PropertyKey, never>; Returns: boolean };
+      save_player_batting: {
+        Args: {
+          p_game_id: string;
+          p_player_id: string;
+          p_plate_appearances: Json;
+          p_extra_stolen_bases: number;
+        };
+        Returns: undefined;
+      };
     };
     Enums: { [_ in never]: never };
     CompositeTypes: { [_ in never]: never };
