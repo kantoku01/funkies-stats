@@ -28,7 +28,9 @@ function formatAsOf(date: string | null): string | null {
 }
 
 async function SeasonStatsView({ searchParams }: { searchParams: PageProps<"/">["searchParams"] }) {
-  const [params, seasons] = await Promise.all([searchParams, getSeasons()]);
+  // 先にリクエストの値を読む(ビルド時の事前レンダリングで DB に問い合わせないように)
+  const params = await searchParams;
+  const seasons = await getSeasons();
   const season = parseSeason(params.season, seasons);
 
   if (season === null) {
