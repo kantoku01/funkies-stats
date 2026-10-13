@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { connection } from "next/server";
 import { notFound } from "next/navigation";
 import { getPlayerForAdmin, getPlayersForAdmin } from "@/lib/data/players";
 import { currentYearInJapan } from "@/lib/season";
@@ -15,6 +16,7 @@ export default async function EditPlayerPage({ params, searchParams }: PageProps
   const [{ id }, query] = await Promise.all([params, searchParams]);
   if (!UUID.test(id)) notFound();
 
+  await connection(); // 今日の日付を使うので、リクエストごとに描画する
   const now = new Date();
   const season = pickSeason(query.season, await getEditableSeasons(now), currentYearInJapan(now));
   const [player, { numbers }] = await Promise.all([getPlayerForAdmin(id), getPlayersForAdmin()]);

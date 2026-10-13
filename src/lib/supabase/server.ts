@@ -1,11 +1,15 @@
 import "server-only";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import { connection } from "next/server";
 import type { Database } from "@/types/database";
 import { supabaseKey, supabaseUrl } from "./env";
 
 // Server Component / Server Action / Route Handler 用
 export async function createClient() {
+  // セッションの検証でトークンの期限と現在時刻を比べるので、事前描画(プリフェッチ)では動かさず
+  // 実際のリクエストのときだけ実行する
+  await connection();
   const cookieStore = await cookies();
 
   return createServerClient<Database>(supabaseUrl, supabaseKey, {

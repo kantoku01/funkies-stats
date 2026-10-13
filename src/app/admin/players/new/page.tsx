@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { connection } from "next/server";
 import { currentYearInJapan, todayInJapan } from "@/lib/season";
 import { createPlayer } from "../actions";
 import { PlayerForm } from "../player-form";
@@ -8,6 +9,7 @@ export const metadata: Metadata = { title: "選手を追加" };
 
 export default async function NewPlayerPage({ searchParams }: PageProps<"/admin/players/new">) {
   const params = await searchParams;
+  await connection(); // 今日の日付を使うので、リクエストごとに描画する
   const now = new Date();
   const season = pickSeason(params.season, await getEditableSeasons(now), currentYearInJapan(now));
 

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { connection } from "next/server";
 import Link from "next/link";
 import { getPlayersForAdmin } from "@/lib/data/players";
 import { currentYearInJapan } from "@/lib/season";
@@ -11,6 +12,7 @@ type Player = Awaited<ReturnType<typeof getPlayersForAdmin>>["players"][number];
 
 export default async function PlayersPage({ searchParams }: PageProps<"/admin/players">) {
   const params = await searchParams;
+  await connection(); // 今日の日付を使うので、リクエストごとに描画する
   const now = new Date();
   const seasons = await getEditableSeasons(now);
   const season = pickSeason(params.season, seasons, currentYearInJapan(now));

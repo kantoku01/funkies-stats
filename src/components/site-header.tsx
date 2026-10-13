@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { isLoggedIn } from "@/lib/auth";
+import { NavTabs } from "./nav-tabs";
 
 export function SiteHeader() {
   return (
@@ -14,6 +15,7 @@ export function SiteHeader() {
           <AuthStatus />
         </Suspense>
       </div>
+      <NavTabs />
     </header>
   );
 }

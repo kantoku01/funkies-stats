@@ -1,8 +1,8 @@
-import Link from "next/link";
 import { Suspense } from "react";
 import { toRow, toTeamRow } from "@/components/leaderboard/build-rows";
 import type { LeaderboardGroup } from "@/components/leaderboard/columns";
 import { LeaderboardTable } from "@/components/leaderboard/leaderboard-table";
+import { SeasonTabs } from "@/components/season-tabs";
 import { getSeasons, getSeasonStats } from "@/lib/data/stats";
 import { formatQualifyingPa, formatRate } from "@/lib/stats";
 
@@ -54,22 +54,7 @@ async function SeasonStatsView({ searchParams }: { searchParams: PageProps<"/">[
     <section className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h1 className="text-xl font-bold">{season}年 成績一覧</h1>
-        {seasons.length > 1 && (
-          <nav aria-label="シーズン切替" className="flex gap-1">
-            {seasons.map((s) => (
-              <Link
-                key={s}
-                href={`/?season=${s}`}
-                aria-current={s === season ? "page" : undefined}
-                className={`flex min-h-11 items-center rounded-md px-3 text-sm ${
-                  s === season ? "bg-blue-900 font-bold text-white" : "border border-slate-300 bg-white text-slate-700"
-                }`}
-              >
-                {s}
-              </Link>
-            ))}
-          </nav>
-        )}
+        <SeasonTabs seasons={seasons} current={season} href={(s) => `/?season=${s}`} />
       </div>
 
       <dl className="grid grid-cols-3 gap-2 text-center">
