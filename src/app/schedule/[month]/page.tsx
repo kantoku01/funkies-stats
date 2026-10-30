@@ -37,7 +37,10 @@ export default function SchedulePage({ params }: PageProps<"/schedule/[month]">)
   );
 }
 
-const KIND_LABEL = { practice: "練習", off: "休み", tbd: "未定" } as const;
+const KIND_LABEL = { practice: "活動予定", off: "休み", tbd: "未定" } as const;
+
+// 休みの日(試合が入っていない)は回答を受け付けない
+const isClosed = (d: ScheduleDay) => d.kind === "off" && d.games.length === 0;
 
 // 日付の予定を1行で(試合があれば試合を優先)
 function eventText(d: ScheduleDay): string {
@@ -65,6 +68,7 @@ async function ScheduleView({ params }: { params: PageProps<"/schedule/[month]">
   if (!m) notFound();
   const { days, members } = await getScheduleMonth(m);
   const { first, last } = monthRange(m);
+  const open = days.filter((d) => !isClosed(d));
   const prev = monthKey(shiftMonth(m, -1));
   const next = monthKey(shiftMonth(m, 1));
 
@@ -99,17 +103,27 @@ async function ScheduleView({ params }: { params: PageProps<"/schedule/[month]">
           const answered = active.filter((mem) => d.answers[mem.id]);
           const counts = countAnswers(answered.map((mem) => d.answers[mem.id]));
           const hasGame = d.games.length > 0;
+          const closed = isClosed(d);
+          const yesPlayers = answered.filter((mem) => mem.kind === "regular" && d.answers[mem.id].answer === "yes").length;
+          const yesManagers = counts.yes - yesPlayers;
           return (
             <li key={d.day} className={`rounded-lg border bg-white p-3 ${hasGame ? "border-accent-500" : "border-slate-200"}`}>
               <div className="flex items-baseline justify-between gap-2">
                 <span className="text-lg font-bold tabular-nums">{formatGameDate(d.day)}</span>
-                <span className="text-sm tabular-nums">
-                  <span className="font-bold text-red-600">○{counts.yes}</span>{" "}
-                  <span className="font-bold text-amber-600">△{counts.maybe}</span>{" "}
-                  <span className="font-bold text-slate-500">×{counts.no}</span>{" "}
-                  <span className="text-xs text-slate-400">未{active.length - answered.length}</span>
-                </span>
+                {!closed && (
+                  <span className="text-sm tabular-nums">
+                    <span className="font-bold text-red-600">○{counts.yes}</span>{" "}
+                    <span className="font-bold text-amber-600">△{counts.maybe}</span>{" "}
+                    <span className="font-bold text-slate-500">×{counts.no}</span>{" "}
+                    <span className="text-xs text-slate-400">未{active.length - answered.length}</span>
+                  </span>
+                )}
               </div>
+              {!closed && counts.yes > 0 && (
+                <p className="text-right text-xs text-red-600 tabular-nums">
+                  ○の内訳: 選手{yesPlayers}人・マネージャー{yesManagers}人
+                </p>
+              )}
               {hasGame ? (
                 d.games.map((g) => (
                   <Link key={g.id} href={`/games/${g.id}`} className="block text-sm font-medium text-accent-600">
@@ -119,7 +133,7 @@ async function ScheduleView({ params }: { params: PageProps<"/schedule/[month]">
               ) : (
                 <p className={`text-sm ${d.kind === "off" ? "text-slate-400" : "text-slate-700"}`}>{eventText(d)}</p>
               )}
-              {answered.length > 0 && (
+              {!closed && answered.length > 0 && (
                 <details className="mt-1 text-sm">
                   <summary className="cursor-pointer text-slate-500">回答した人を見る</summary>
                   <ul className="mt-1 space-y-0.5">
@@ -153,11 +167,13 @@ async function ScheduleView({ params }: { params: PageProps<"/schedule/[month]">
       </EditorOnly>
 
       {/* 回答 */}
-      <AnswerForm
-        members={members.map((mem) => ({ id: mem.id, name: mem.name, number: mem.number }))}
-        days={days.map((d) => ({ day: d.day, label: formatGameDate(d.day), event: eventText(d) }))}
-        current={current}
-      />
+      {open.length > 0 && (
+        <AnswerForm
+          members={members.map((mem) => ({ id: mem.id, name: mem.name, number: mem.number }))}
+          days={open.map((d) => ({ day: d.day, label: formatGameDate(d.day), event: eventText(d) }))}
+          current={current}
+        />
+      )}
 
       {/* 一覧表(未回答の人も分かる) */}
       <div className="space-y-1">
@@ -167,7 +183,7 @@ async function ScheduleView({ params }: { params: PageProps<"/schedule/[month]">
             <thead>
               <tr className="border-b border-slate-200 bg-slate-100">
                 <th className="sticky left-0 z-10 min-w-24 bg-slate-100 px-2 py-2 text-left font-medium">名前</th>
-                {days.map((d) => (
+                {open.map((d) => (
                   <th key={d.day} className="px-2 py-2 font-medium tabular-nums">
                     {formatGameDate(d.day, false)}
                   </th>
@@ -180,7 +196,7 @@ async function ScheduleView({ params }: { params: PageProps<"/schedule/[month]">
                   <th scope="row" className="sticky left-0 z-10 truncate bg-white px-2 py-1.5 text-left font-normal">
                     {mem.name}
                   </th>
-                  {days.map((d) => {
+                  {open.map((d) => {
                     const a = d.answers[mem.id];
                     const out = !activeOn(mem, d.day);
                     return (

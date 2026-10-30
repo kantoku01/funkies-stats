@@ -42,7 +42,7 @@ export async function saveAnswers(playerId: string, answers: AnswerInput[]): Pro
 
 export type ScheduleEditState = { message: string | null };
 
-// 日付の予定(練習 / 休み / 未定)とメモ。日曜以外の日付を足すときにも使う(編集者のみ)
+// 日付の予定(活動予定 / 休み / 未定)とメモ。日曜以外の日付を足すときにも使う(編集者のみ)
 export async function saveScheduleDate(_prev: ScheduleEditState, formData: FormData): Promise<ScheduleEditState> {
   if (!(await getCurrentEditor())) return { message: "編集者としてログインしてください。" };
   const day = String(formData.get("day") ?? "");

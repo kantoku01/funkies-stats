@@ -3,7 +3,7 @@
 import { useActionState } from "react";
 import { removeExtraDate, saveScheduleDate, type ScheduleEditState } from "../actions";
 
-// 編集者向け: その日の予定(練習 / 休み / 未定)とメモ
+// 編集者向け: その日の予定(活動予定 / 休み / 未定)とメモ
 export function DayEditor({ day, kind, note, extra }: { day: string; kind: string; note: string | null; extra: boolean }) {
   const [state, action, pending] = useActionState<ScheduleEditState, FormData>(saveScheduleDate, { message: null });
   const [removeState, removeAction, removing] = useActionState<ScheduleEditState, FormData>(removeExtraDate, { message: null });
@@ -16,7 +16,7 @@ export function DayEditor({ day, kind, note, extra }: { day: string; kind: strin
         <div className="grid grid-cols-3 gap-1">
           {(
             [
-              ["practice", "練習"],
+              ["practice", "活動予定"],
               ["off", "休み"],
               ["tbd", "未定"],
             ] as const
