@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useActionState, useState } from "react";
+import { ANSWER_MARK, type Answer } from "@/lib/schedule/month";
 import { saveParticipants, type ParticipantsState } from "../../actions";
 
 export type Candidate = {
@@ -9,7 +10,9 @@ export type Candidate = {
   name: string;
   number: string; // 助っ人は「助」
   note: string | null; // 「在籍期間外」など
-  registered: boolean;
+  registered: boolean; // すでに参加者として保存されている
+  initiallyChecked: boolean; // 画面を開いたときにチェックを入れておくか(出欠の ○△ を含む)
+  answer: Answer | null; // 出欠の回答
   battingOrder: string;
   paCount: number;
 };
@@ -19,7 +22,7 @@ export function ParticipantsForm({ gameId, candidates }: { gameId: string; candi
     errors: {},
     message: null,
   });
-  const [checked, setChecked] = useState(() => new Set(candidates.filter((c) => c.registered).map((c) => c.playerId)));
+  const [checked, setChecked] = useState(() => new Set(candidates.filter((c) => c.initiallyChecked).map((c) => c.playerId)));
   // 入力エラーで戻ったときに打順が消えないよう、画面側で持つ
   const [orders, setOrders] = useState<Record<string, string>>(() =>
     Object.fromEntries(candidates.map((c) => [c.playerId, c.battingOrder])),
@@ -71,6 +74,14 @@ export function ParticipantsForm({ gameId, candidates }: { gameId: string; candi
                   <span className="w-7 shrink-0 text-center tabular-nums text-slate-500">{c.number}</span>
                   <span className="flex-1">
                     <span className="font-medium">{c.name}</span>
+                    {c.answer && (
+                      <span
+                        className={`ml-2 font-bold ${c.answer === "yes" ? "text-red-600" : c.answer === "maybe" ? "text-amber-600" : "text-slate-400"}`}
+                        title="出欠の回答"
+                      >
+                        {ANSWER_MARK[c.answer]}
+                      </span>
+                    )}
                     {c.note && <span className="ml-2 text-xs text-amber-700">{c.note}</span>}
                     {c.paCount > 0 && <span className="ml-2 text-xs text-slate-500">{c.paCount}打席入力済み</span>}
                   </span>

@@ -49,6 +49,14 @@ async function HomeView() {
 
   return (
     <div className="space-y-6">
+      <Link
+        href="/schedule"
+        className="flex min-h-12 items-center justify-between rounded-lg bg-brand-600 px-4 font-bold text-white"
+      >
+        <span>今月の予定・出欠を回答する</span>
+        <span aria-hidden>›</span>
+      </Link>
+
       {/* 次の試合 */}
       {nextGame && (
         <section className="space-y-2">

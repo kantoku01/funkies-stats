@@ -4,7 +4,8 @@
 #   2. 打撃入力の保存     (supabase/tests/batting_test.sql)
 #   3. チーム経費         (supabase/tests/ledger_test.sql)
 #   4. 試合の種類と大会   (supabase/tests/game_types_test.sql)
-#   5. seed の投入テスト   (supabase/seed.sql + supabase/tests/seed_test.sql)
+#   5. 出欠               (supabase/tests/attendance_test.sql)
+#   6. seed の投入テスト   (supabase/seed.sql + supabase/tests/seed_test.sql)
 # を別々のデータベースで流す。
 # 必要なもの: PostgreSQL 15 以上のサーバー (initdb / pg_ctl) と psql
 set -euo pipefail
@@ -55,6 +56,10 @@ run_test ledger_test "$ROOT/supabase/tests/ledger_test.sql"
 echo "== 試合の種類と大会"
 setup_db game_types_test
 run_test game_types_test "$ROOT/supabase/tests/game_types_test.sql"
+
+echo "== 出欠"
+setup_db attendance_test
+run_test attendance_test "$ROOT/supabase/tests/attendance_test.sql"
 
 echo "== seed"
 setup_db seed_test

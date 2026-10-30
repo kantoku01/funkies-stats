@@ -45,6 +45,10 @@ async function GamesView({ searchParams }: { searchParams: PageProps<"/games">["
       </div>
       {season !== null && <SeasonTabs seasons={seasons} current={season} href={(s) => `/games?season=${s}`} />}
 
+      <Link href="/schedule" className="flex min-h-11 items-center justify-between rounded-md border border-brand-600 bg-white px-4 text-sm font-bold text-brand-700">
+        <span>予定・出欠(月ごと)</span>
+        <span aria-hidden>›</span>
+      </Link>
       {season !== null && (
         <GameFilterTabs current={filter.key} tournaments={tournaments} href={(k) => `/games?season=${season}${typeQuery(k)}`} />
       )}

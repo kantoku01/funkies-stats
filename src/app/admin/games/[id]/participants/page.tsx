@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getParticipantsForAdmin } from "@/lib/data/games";
 import { getPlayersForAdmin } from "@/lib/data/players";
+import { getAnswersForDay } from "@/lib/data/schedule";
+import { countsAsAttending } from "@/lib/schedule/month";
 import { formatGameDate } from "@/lib/format";
 import { enrolledOn } from "@/lib/games/participants";
 import { resolveNumber } from "@/lib/stats";
@@ -18,6 +20,9 @@ export default async function ParticipantsPage({ params }: PageProps<"/admin/gam
     getPlayersForAdmin(),
   ]);
   const registered = new Map(participants.map((p) => [p.player_id, p]));
+  // 出欠の回答。まだ誰も登録していなければ、○と△の人に最初からチェックを入れる
+  const answers = await getAnswersForDay(game.game_date);
+  const prefill = participants.length === 0;
 
   // 候補: 試合日に在籍している正規メンバー + 助っ人 + すでに登録済みの選手
   const candidates: Candidate[] = players
@@ -30,6 +35,8 @@ export default async function ParticipantsPage({ params }: PageProps<"/admin/gam
         number: p.kind === "guest" ? "助" : (resolveNumber(numbers, p.id, game.season) ?? ""),
         note: p.kind === "regular" && !enrolledOn(p, game.game_date) ? "在籍期間外" : null,
         registered: Boolean(r),
+        initiallyChecked: Boolean(r) || (prefill && p.kind === "regular" && countsAsAttending(answers.get(p.id))),
+        answer: answers.get(p.id) ?? null,
         battingOrder: r?.batting_order?.toString() ?? "",
         paCount: r?.paCount ?? 0,
       };
@@ -47,6 +54,11 @@ export default async function ParticipantsPage({ params }: PageProps<"/admin/gam
           {formatGameDate(game.game_date)} {game.opponent ?? ""}
           ・出席した選手にチェックを入れてください。打順は任意です。
         </p>
+        {prefill && answers.size > 0 && (
+          <p className="mt-1 rounded-md bg-brand-50 px-3 py-2 text-sm text-brand-800">
+            出欠で ○ か △ と答えた人に、最初からチェックを入れています。来なかった人は外してください。
+          </p>
+        )}
       </div>
       <ParticipantsForm
         gameId={game.id}

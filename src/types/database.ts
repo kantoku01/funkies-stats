@@ -260,6 +260,18 @@ export type Database = {
         Update: Partial<Database["public"]["Tables"]["tournaments"]["Insert"]>;
         Relationships: [];
       };
+      schedule_dates: {
+        Row: { day: string; kind: "practice" | "off" | "tbd"; note: string | null; extra: boolean };
+        Insert: { day: string; kind?: "practice" | "off" | "tbd"; note?: string | null; extra?: boolean };
+        Update: Partial<Database["public"]["Tables"]["schedule_dates"]["Insert"]>;
+        Relationships: [];
+      };
+      attendance_answers: {
+        Row: { day: string; player_id: string; answer: "yes" | "maybe" | "no"; comment: string | null; updated_at: string };
+        Insert: { day: string; player_id: string; answer: "yes" | "maybe" | "no"; comment?: string | null; updated_at?: string };
+        Update: Partial<Database["public"]["Tables"]["attendance_answers"]["Insert"]>;
+        Relationships: [];
+      };
       editors: {
         Row: { user_id: string; display_name: string };
         Insert: { user_id: string; display_name: string };
@@ -270,6 +282,10 @@ export type Database = {
     Views: { [_ in never]: never };
     Functions: {
       is_editor: { Args: Record<PropertyKey, never>; Returns: boolean };
+      answer_attendance: {
+        Args: { p_day: string; p_player_id: string; p_answer: string | null; p_comment: string | null };
+        Returns: undefined;
+      };
       save_player_batting: {
         Args: {
           p_game_id: string;
