@@ -39,7 +39,7 @@ async function GameDetailView({ params }: { params: PageProps<"/games/[id]">["pa
   return (
     <section className="space-y-4">
       <div className="flex items-center justify-between">
-        <Link href={`/games?season=${g.season}`} className="text-sm text-blue-800">
+        <Link href={`/games?season=${g.season}`} className="text-sm text-brand-700">
           ‹ 試合一覧
         </Link>
         <Suspense fallback={null}>

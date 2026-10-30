@@ -1,7 +1,7 @@
 import { RESULT_KIND, RESULT_LABEL, RESULT_SHORT, type BattingEntry } from "@/lib/batting/entry";
 
 const CHIP: Record<"hit" | "walk" | "out", string> = {
-  hit: "bg-blue-900 text-white",
+  hit: "bg-brand-600 text-white",
   walk: "bg-emerald-100 text-emerald-900",
   out: "bg-slate-100 text-slate-500",
 };

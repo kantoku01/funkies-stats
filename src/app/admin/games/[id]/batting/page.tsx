@@ -27,7 +27,7 @@ export default async function BattingPage({ params, searchParams }: PageProps<"/
         <p className="text-slate-600">先に参加者を登録してください。</p>
         <Link
           href={`/admin/games/${id}/participants`}
-          className="inline-flex min-h-11 items-center rounded-md bg-blue-900 px-4 font-bold text-white"
+          className="inline-flex min-h-11 items-center rounded-md bg-brand-600 px-4 font-bold text-white"
         >
           参加者登録へ
         </Link>
@@ -62,7 +62,7 @@ export default async function BattingPage({ params, searchParams }: PageProps<"/
   return (
     <section className="space-y-2">
       <p className="text-sm text-slate-500">
-        <Link href={`/admin/games/${id}`} className="text-blue-800">
+        <Link href={`/admin/games/${id}`} className="text-brand-700">
           ‹ 試合
         </Link>
         <span className="ml-2">

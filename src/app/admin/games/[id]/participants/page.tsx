@@ -38,7 +38,7 @@ export default async function ParticipantsPage({ params }: PageProps<"/admin/gam
 
   return (
     <section className="space-y-4">
-      <Link href={`/admin/games/${game.id}`} className="text-sm text-blue-800">
+      <Link href={`/admin/games/${game.id}`} className="text-sm text-brand-700">
         ‹ 試合に戻る
       </Link>
       <div>

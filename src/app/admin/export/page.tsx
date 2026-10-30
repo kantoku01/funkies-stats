@@ -38,7 +38,7 @@ export default async function ExportPage() {
             <li key={k}>
               <a href={`/admin/export/${k}`} download className="flex min-h-12 items-center justify-between px-4 hover:bg-slate-50">
                 <span>{EXPORT_KINDS[k]}</span>
-                <span className="text-sm text-blue-800">ダウンロード</span>
+                <span className="text-sm text-brand-700">ダウンロード</span>
               </a>
             </li>
           ))}

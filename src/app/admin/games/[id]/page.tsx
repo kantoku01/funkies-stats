@@ -23,10 +23,10 @@ export default async function GamePage({ params }: PageProps<"/admin/games/[id]"
   return (
     <section className="space-y-5">
       <div className="flex justify-between text-sm">
-        <Link href={`/games?season=${g.season}`} className="text-blue-800">
+        <Link href={`/games?season=${g.season}`} className="text-brand-700">
           ‹ 試合一覧
         </Link>
-        <Link href={`/games/${g.id}`} className="text-blue-800">
+        <Link href={`/games/${g.id}`} className="text-brand-700">
           試合詳細を見る ›
         </Link>
       </div>
@@ -46,7 +46,7 @@ export default async function GamePage({ params }: PageProps<"/admin/games/[id]"
           <li key={s.title}>
             {s.href ? (
               <Link href={s.href} className="flex min-h-14 items-center gap-3 px-4 hover:bg-slate-50">
-                <span className="flex size-6 items-center justify-center rounded-full bg-blue-900 text-xs text-white">{i + 1}</span>
+                <span className="flex size-6 items-center justify-center rounded-full bg-brand-600 text-xs text-white">{i + 1}</span>
                 <span className="flex-1 whitespace-nowrap font-medium">{s.title}</span>
                 <span className="truncate text-sm text-slate-500">{s.detail}</span>
                 <span aria-hidden className="text-slate-400">

@@ -25,8 +25,8 @@ async function EditorGate({ children }: { children: ReactNode }) {
       <section className="space-y-2">
         <h1 className="text-xl font-bold">権限がありません</h1>
         <p className="text-slate-600">このアカウントは編集者として登録されていません。管理者に連絡してください。</p>
-        <Link href="/" className="text-blue-800 underline">
-          成績一覧へ戻る
+        <Link href="/" className="text-brand-700 underline">
+          ホームへ戻る
         </Link>
       </section>
     );

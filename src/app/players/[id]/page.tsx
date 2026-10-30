@@ -45,8 +45,8 @@ async function PlayerView({
 
   return (
     <section className="space-y-4">
-      <Link href={season ? `/?season=${season}` : "/"} className="text-sm text-blue-800">
-        ‹ 成績一覧
+      <Link href={season ? `/players?season=${season}` : "/players"} className="text-sm text-brand-700">
+        ‹ 選手一覧
       </Link>
       <div className="flex items-baseline gap-3">
         <span className="text-2xl font-bold tabular-nums text-slate-400">{page.number}</span>

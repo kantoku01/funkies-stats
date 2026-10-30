@@ -43,7 +43,7 @@ export default async function PlayersPage({ searchParams }: PageProps<"/admin/pl
         <h1 className="text-xl font-bold">選手管理</h1>
         <Link
           href={`/admin/players/new?season=${season}`}
-          className="flex min-h-11 items-center rounded-md bg-blue-900 px-4 font-bold text-white"
+          className="flex min-h-11 items-center rounded-md bg-brand-600 px-4 font-bold text-white"
         >
           選手を追加
         </Link>
@@ -56,7 +56,7 @@ export default async function PlayersPage({ searchParams }: PageProps<"/admin/pl
             href={`/admin/players?season=${s}`}
             aria-current={s === season ? "page" : undefined}
             className={`flex min-h-11 items-center rounded-md px-3 text-sm ${
-              s === season ? "bg-blue-900 font-bold text-white" : "border border-slate-300 bg-white text-slate-700"
+              s === season ? "bg-brand-600 font-bold text-white" : "border border-slate-300 bg-white text-slate-700"
             }`}
           >
             {s}年

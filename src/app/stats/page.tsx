@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { Suspense } from "react";
 import { toRow, toTeamRow } from "@/components/leaderboard/build-rows";
 import type { LeaderboardGroup } from "@/components/leaderboard/columns";
@@ -6,7 +7,9 @@ import { SeasonTabs } from "@/components/season-tabs";
 import { getSeasons, getSeasonStats } from "@/lib/data/stats";
 import { formatQualifyingPa, formatRate } from "@/lib/stats";
 
-export default function Home({ searchParams }: PageProps<"/">) {
+export const metadata: Metadata = { title: "成績一覧" };
+
+export default function StatsPage({ searchParams }: PageProps<"/stats">) {
   return (
     <Suspense fallback={<p className="text-slate-500">成績を読み込み中…</p>}>
       <SeasonStatsView searchParams={searchParams} />
@@ -27,7 +30,7 @@ function formatAsOf(date: string | null): string | null {
   return `${m}/${d}時点`;
 }
 
-async function SeasonStatsView({ searchParams }: { searchParams: PageProps<"/">["searchParams"] }) {
+async function SeasonStatsView({ searchParams }: { searchParams: PageProps<"/stats">["searchParams"] }) {
   // 先にリクエストの値を読む(ビルド時の事前レンダリングで DB に問い合わせないように)
   const params = await searchParams;
   const seasons = await getSeasons();
@@ -54,7 +57,7 @@ async function SeasonStatsView({ searchParams }: { searchParams: PageProps<"/">[
     <section className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h1 className="text-xl font-bold">{season}年 成績一覧</h1>
-        <SeasonTabs seasons={seasons} current={season} href={(s) => `/?season=${s}`} />
+        <SeasonTabs seasons={seasons} current={season} href={(s) => `/stats?season=${s}`} />
       </div>
 
       <dl className="grid grid-cols-3 gap-2 text-center">

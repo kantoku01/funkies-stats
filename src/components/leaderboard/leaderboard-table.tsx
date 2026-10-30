@@ -67,7 +67,7 @@ export function LeaderboardTable({
         <button
           type="button"
           onClick={() => onSort(key)}
-          className={`flex min-h-11 w-full items-center justify-center gap-0.5 whitespace-nowrap px-2 ${active ? "text-blue-900" : "text-slate-600"}`}
+          className={`flex min-h-11 w-full items-center justify-center gap-0.5 whitespace-nowrap px-2 ${active ? "text-brand-700" : "text-slate-600"}`}
         >
           {label}
           <span aria-hidden className="w-2 text-[10px]">
@@ -108,14 +108,14 @@ export function LeaderboardTable({
                     {row.number}
                   </td>
                   <th scope="row" className={`${STICKY_NAME} bg-white px-2 py-2 text-left font-medium group-hover:bg-slate-50`}>
-                    <Link href={`/players/${row.playerId}?season=${season}`} className="block truncate text-blue-900">
+                    <Link href={`/players/${row.playerId}?season=${season}`} className="block truncate text-brand-700">
                       {row.name}
                     </Link>
                   </th>
                   {STAT_COLUMNS.map((c) => (
                     <td
                       key={c.key}
-                      className={`whitespace-nowrap px-2 py-2 text-right ${sort.key === c.key ? "bg-blue-50 font-semibold" : ""}`}
+                      className={`whitespace-nowrap px-2 py-2 text-right ${sort.key === c.key ? "bg-brand-50 font-semibold" : ""}`}
                     >
                       {row.display[c.key]}
                     </td>

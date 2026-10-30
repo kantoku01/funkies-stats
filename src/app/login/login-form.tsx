@@ -42,7 +42,7 @@ export function LoginForm() {
       <button
         type="submit"
         disabled={pending}
-        className="min-h-11 w-full rounded-md bg-blue-900 font-bold text-white disabled:opacity-60"
+        className="min-h-11 w-full rounded-md bg-brand-600 font-bold text-white disabled:opacity-60"
       >
         {pending ? "ログイン中…" : "ログイン"}
       </button>

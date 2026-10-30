@@ -57,7 +57,7 @@ export function ParticipantsForm({ gameId, candidates }: { gameId: string; candi
           const on = checked.has(c.playerId);
           const error = state.errors[c.playerId];
           return (
-            <li key={c.playerId} className={on ? "bg-blue-50" : undefined}>
+            <li key={c.playerId} className={on ? "bg-brand-50" : undefined}>
               <div className="flex min-h-14 items-center gap-3 px-3">
                 <label className="flex flex-1 items-center gap-3 py-2">
                   <input
@@ -66,7 +66,7 @@ export function ParticipantsForm({ gameId, candidates }: { gameId: string; candi
                     value={c.playerId}
                     checked={on}
                     onChange={() => toggle(c.playerId)}
-                    className="size-6 shrink-0 accent-blue-900"
+                    className="size-6 shrink-0 accent-brand-600"
                   />
                   <span className="w-7 shrink-0 text-center tabular-nums text-slate-500">{c.number}</span>
                   <span className="flex-1">
@@ -98,7 +98,7 @@ export function ParticipantsForm({ gameId, candidates }: { gameId: string; candi
 
       <p className="text-xs text-slate-500">
         助っ人もこの一覧から選びます。一覧にいない選手は
-        <Link href="/admin/players/new" className="text-blue-800 underline">
+        <Link href="/admin/players/new" className="text-brand-700 underline">
           選手管理
         </Link>
         で追加してください。
@@ -111,7 +111,7 @@ export function ParticipantsForm({ gameId, candidates }: { gameId: string; candi
           <button
             type="submit"
             disabled={pending}
-            className="min-h-11 flex-1 rounded-md bg-blue-900 font-bold text-white disabled:opacity-60"
+            className="min-h-11 flex-1 rounded-md bg-brand-600 font-bold text-white disabled:opacity-60"
           >
             {pending ? "保存中…" : "参加者を保存"}
           </button>

@@ -10,6 +10,22 @@
   --color-foreground: var(--foreground);
 }
 
+/* チームカラー(ロゴの青を明るめにしたもの)と差し色(ロゴのピンク) */
+@theme {
+  --color-brand-50: #eef6ff;
+  --color-brand-100: #d8eaff;
+  --color-brand-200: #b4d5fe;
+  --color-brand-300: #82b8fb;
+  --color-brand-400: #4b94f3;
+  --color-brand-500: #2479e3;
+  --color-brand-600: #0b63c4;
+  --color-brand-700: #0a4f9e;
+  --color-brand-800: #0d4380;
+  --color-brand-900: #10386a;
+  --color-accent-500: #e8318d;
+  --color-accent-600: #c9207a;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);

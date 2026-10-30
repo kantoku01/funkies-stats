@@ -11,7 +11,7 @@ export function SeasonTabs({ seasons, current, href }: { seasons: number[]; curr
           href={href(s)}
           aria-current={s === current ? "page" : undefined}
           className={`flex min-h-11 items-center rounded-md px-3 text-sm ${
-            s === current ? "bg-blue-900 font-bold text-white" : "border border-slate-300 bg-white text-slate-700"
+            s === current ? "bg-brand-600 font-bold text-white" : "border border-slate-300 bg-white text-slate-700"
           }`}
         >
           {s}

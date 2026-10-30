@@ -30,7 +30,7 @@ type Props = {
 const snapshot = (d: PlayerData) => JSON.stringify(d);
 
 const BUTTON_STYLE: Record<"hit" | "walk" | "out", string> = {
-  hit: "bg-blue-900 text-white active:bg-blue-950",
+  hit: "bg-brand-600 text-white active:bg-brand-700",
   walk: "bg-emerald-700 text-white active:bg-emerald-800",
   out: "bg-slate-600 text-white active:bg-slate-700",
 };
@@ -187,7 +187,7 @@ export function BattingInput({ gameId, players, initial, startPlayerId, finishHr
           type="button"
           onClick={() => goTo(index - 1)}
           disabled={index === 0 || pending}
-          className="min-h-11 min-w-14 rounded-md text-sm text-blue-900 disabled:text-slate-300"
+          className="min-h-11 min-w-14 rounded-md text-sm text-brand-700 disabled:text-slate-300"
         >
           ‹ 前
         </button>
@@ -205,7 +205,7 @@ export function BattingInput({ gameId, players, initial, startPlayerId, finishHr
           type="button"
           onClick={() => goTo(index + 1)}
           disabled={isLast || pending}
-          className="min-h-11 min-w-14 rounded-md text-sm text-blue-900 disabled:text-slate-300"
+          className="min-h-11 min-w-14 rounded-md text-sm text-brand-700 disabled:text-slate-300"
         >
           次 ›
         </button>
@@ -247,7 +247,7 @@ export function BattingInput({ gameId, players, initial, startPlayerId, finishHr
             <li
               key={i}
               className={`flex items-center gap-1 px-2 py-1.5 ${
-                editing === i ? "bg-amber-50" : lastAdded === i ? "bg-blue-50" : ""
+                editing === i ? "bg-amber-50" : lastAdded === i ? "bg-brand-50" : ""
               }`}
             >
               <button
@@ -324,7 +324,7 @@ export function BattingInput({ gameId, players, initial, startPlayerId, finishHr
                   aria-current={i === index ? "true" : undefined}
                   className={`flex min-h-11 w-full items-center gap-1 rounded-md border px-2 text-left text-sm ${
                     state === "current"
-                      ? "border-blue-900 bg-blue-900 text-white"
+                      ? "border-brand-600 bg-brand-600 text-white"
                       : state === "done"
                         ? "border-emerald-300 bg-emerald-50"
                         : state === "dirty"
@@ -350,7 +350,7 @@ export function BattingInput({ gameId, players, initial, startPlayerId, finishHr
             type="button"
             onClick={isLast ? finish : () => goTo(index + 1)}
             disabled={pending}
-            className="min-h-12 w-full rounded-md bg-blue-900 text-lg font-bold text-white disabled:opacity-60"
+            className="min-h-12 w-full rounded-md bg-brand-600 text-lg font-bold text-white disabled:opacity-60"
           >
             {pending ? "保存中…" : isLast ? "保存して終了" : `次の選手へ(${players[index + 1].name})›`}
           </button>
@@ -394,7 +394,7 @@ function Counter({
         onClick={() => onChange(1)}
         disabled={disabled || value >= max}
         aria-label={`${label}を増やす`}
-        className="size-11 rounded-md bg-slate-100 text-xl font-bold text-blue-900 active:bg-slate-200 disabled:text-slate-300"
+        className="size-11 rounded-md bg-slate-100 text-xl font-bold text-brand-700 active:bg-slate-200 disabled:text-slate-300"
       >
         +
       </button>

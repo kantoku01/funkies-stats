@@ -49,7 +49,7 @@ export function PlayerForm({ action, initial, playerId, season, inheritedNote, s
           ).map(([value, label]) => (
             <label
               key={value}
-              className="flex min-h-11 items-center justify-center gap-2 rounded-md border border-slate-300 bg-white has-[:checked]:border-blue-900 has-[:checked]:bg-blue-50 has-[:checked]:font-bold"
+              className="flex min-h-11 items-center justify-center gap-2 rounded-md border border-slate-300 bg-white has-[:checked]:border-brand-600 has-[:checked]:bg-brand-50 has-[:checked]:font-bold"
             >
               <input
                 type="radio"
@@ -105,7 +105,7 @@ export function PlayerForm({ action, initial, playerId, season, inheritedNote, s
         <button
           type="submit"
           disabled={pending}
-          className="min-h-11 flex-1 rounded-md bg-blue-900 font-bold text-white disabled:opacity-60"
+          className="min-h-11 flex-1 rounded-md bg-brand-600 font-bold text-white disabled:opacity-60"
         >
           {pending ? "保存中…" : submitLabel}
         </button>

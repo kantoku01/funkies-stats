@@ -1,16 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
-import { formatScore, GameResultBadge } from "@/components/game-result-badge";
+import { GameList } from "@/components/game-list";
 import { SeasonTabs } from "@/components/season-tabs";
 import { getCurrentEditor } from "@/lib/auth";
 import { getGamesBySeason } from "@/lib/data/games";
 import { getSeasons } from "@/lib/data/stats";
-import { formatGameDate } from "@/lib/format";
 
 export const metadata: Metadata = { title: "試合一覧" };
-
-type Games = Awaited<ReturnType<typeof getGamesBySeason>>;
 
 export default function GamesPage({ searchParams }: PageProps<"/games">) {
   return (
@@ -46,38 +43,8 @@ async function GamesView({ searchParams }: { searchParams: PageProps<"/games">["
 async function AddGameButton() {
   if (!(await getCurrentEditor())) return null;
   return (
-    <Link href="/admin/games/new" className="flex min-h-11 items-center rounded-md bg-blue-900 px-4 font-bold text-white">
+    <Link href="/admin/games/new" className="flex min-h-11 items-center rounded-md bg-brand-600 px-4 font-bold text-white">
       試合を追加
     </Link>
-  );
-}
-
-function GameList({ games }: { games: Games }) {
-  if (games.length === 0) {
-    return <p className="text-slate-600">アプリで登録した試合はまだありません。</p>;
-  }
-  return (
-    <ul className="divide-y divide-slate-100 rounded-md border border-slate-200 bg-white">
-      {games.map((g) => {
-        const body = (
-          <>
-            <GameResultBadge result={g.result} />
-            <span className="w-20 shrink-0 tabular-nums">{formatGameDate(g.game_date)}</span>
-            <span className="flex-1 truncate">{g.opponent ?? "(対戦相手未入力)"}</span>
-            <span className="shrink-0 font-bold tabular-nums">{formatScore(g.team_score, g.opponent_score)}</span>
-          </>
-        );
-        return (
-          <li key={g.id}>
-            <Link href={`/games/${g.id}`} className="flex min-h-12 items-center gap-3 px-3 hover:bg-slate-50">
-              {body}
-              <span aria-hidden className="text-slate-400">
-                ›
-              </span>
-            </Link>
-          </li>
-        );
-      })}
-    </ul>
   );
 }

@@ -1,9 +1,10 @@
 import { RESULT_LABEL } from "@/lib/format";
 import type { GameResult } from "@/types/database";
 
+// 勝ち=赤 / 負け=青 / 引分=灰
 const STYLE: Record<GameResult, string> = {
-  win: "bg-blue-900 text-white",
-  lose: "bg-red-700 text-white",
+  win: "bg-red-600 text-white",
+  lose: "bg-blue-700 text-white",
   draw: "bg-slate-400 text-white",
 };
 
