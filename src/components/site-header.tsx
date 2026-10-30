@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { Suspense } from "react";
 import { isLoggedIn } from "@/lib/auth";
@@ -7,8 +8,9 @@ export function SiteHeader() {
   return (
     <header className="bg-brand-600 text-white">
       <div className="mx-auto flex h-12 max-w-3xl items-center justify-between px-4">
-        <Link href="/" className="font-bold">
-          ファンキーズ打撃成績
+        <Link href="/" className="flex items-center gap-2 font-bold">
+          <Image src="/logo.png" alt="" width={32} height={32} className="rounded-md" preload />
+          ファンキーズ
         </Link>
         {/* ログイン状態の確認はリクエスト時に行うので、ヘッダー本体を待たせない */}
         <Suspense fallback={null}>

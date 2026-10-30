@@ -139,40 +139,22 @@ function RankingCard({ category, stats }: { category: RankingCategory; stats: Se
         <p className="px-3 py-3 text-sm text-slate-400">該当者なし</p>
       ) : (
         <ol className="divide-y divide-slate-50">
-          {groups.map((g) => {
-            // 同じ順位が多いときは2人まで出して、残りは「ほか○人」にまとめる
-            const shown = g.items.length > 3 ? g.items.slice(0, 2) : g.items;
-            const rest = g.items.slice(shown.length);
-            return (
-              <li key={g.rank} className="flex items-start gap-2 px-3 py-2">
+          {/* 同率は同じ順位の数字で1人ずつ縦に並べる */}
+          {groups.flatMap((g) =>
+            g.items.map((p) => (
+              <li key={p.playerId} className="flex items-center gap-2 px-3 py-2">
                 <span
-                  className={`mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full text-xs font-bold ${MEDAL[g.rank] ?? "bg-slate-100"}`}
+                  className={`flex size-6 shrink-0 items-center justify-center rounded-full text-xs font-bold ${MEDAL[g.rank] ?? "bg-slate-100"}`}
                 >
                   {g.rank}
                 </span>
-                <div className="min-w-0 flex-1 text-sm">
-                  {shown.map((p, i) => (
-                    <span key={p.playerId}>
-                      {i > 0 && "、"}
-                      <Link href={`/players/${p.playerId}?season=${stats.season}`} className="font-medium">
-                        {p.fullName}
-                      </Link>
-                    </span>
-                  ))}
-                  {rest.length > 0 && (
-                    <details className="inline">
-                      <summary className="inline cursor-pointer text-slate-500"> ほか{rest.length}人</summary>
-                      <span className="block text-slate-600">
-                        {rest.map((p) => p.fullName).join("、")}
-                      </span>
-                    </details>
-                  )}
-                  {g.items.length > 1 && <span className="ml-1 text-xs text-slate-400">(同率)</span>}
-                </div>
-                <span className="shrink-0 font-bold tabular-nums">{value(g.items[0])}</span>
+                <Link href={`/players/${p.playerId}?season=${stats.season}`} className="min-w-0 flex-1 truncate text-sm font-medium">
+                  {p.fullName}
+                </Link>
+                <span className="shrink-0 font-bold tabular-nums">{value(p)}</span>
               </li>
-            );
-          })}
+            )),
+          )}
         </ol>
       )}
     </div>

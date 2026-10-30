@@ -9,14 +9,14 @@ export type RankingCategory =
 
 // ホーム画面のランキング。率は規定到達者(出席率だけは正規メンバー全員)、数は正規メンバー全員が対象
 export const RANKING_CATEGORIES: RankingCategory[] = [
+  { key: "attendanceRate", label: "出席率", pool: "regular", kind: "rate" },
+  { key: "contribution", label: "打撃貢献率", pool: "qualified", kind: "rate" },
+  { key: "ops", label: "OPS", pool: "qualified", kind: "rate" },
   { key: "avg", label: "打率", pool: "qualified", kind: "rate" },
   { key: "homeRuns", label: "本塁打", pool: "regular", kind: "count", unit: "本" },
+  { key: "hits", label: "安打", pool: "regular", kind: "count", unit: "本" },
   { key: "rbi", label: "打点", pool: "regular", kind: "count", unit: "" },
   { key: "stolenBases", label: "盗塁", pool: "regular", kind: "count", unit: "" },
-  { key: "ops", label: "OPS", pool: "qualified", kind: "rate" },
-  { key: "attendanceRate", label: "出席率", pool: "regular", kind: "rate" },
-  { key: "hits", label: "安打", pool: "regular", kind: "count", unit: "本" },
-  { key: "contribution", label: "打撃貢献率", pool: "qualified", kind: "rate" },
 ];
 
 // 比べる値。率は画面に出す3桁(.333)が同じなら同率にする
