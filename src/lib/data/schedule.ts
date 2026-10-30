@@ -59,7 +59,8 @@ export async function getScheduleMonth(m: Month): Promise<ScheduleMonth> {
         .gte("game_date", first)
         .lte("game_date", last)
         .order("game_date")
-        .order("start_time")
+        .order("start_time", { nullsFirst: false })
+        .order("created_at")
         .range(from, to),
     ),
     fetchAll((from, to) =>

@@ -42,24 +42,23 @@ const KIND_LABEL = { practice: "活動予定", off: "休み", tbd: "未定" } as
 // 休みの日(試合が入っていない)は回答を受け付けない
 const isClosed = (d: ScheduleDay) => d.kind === "off" && d.games.length === 0;
 
+// 試合1つを1行で。同じ日に複数あれば「第1試合」「第2試合」
+function gameText(g: ScheduleDay["games"][number], i: number, total: number): string {
+  return [
+    total > 1 ? `第${i + 1}試合` : "試合",
+    g.opponent ? `vs ${g.opponent}` : "(相手未定)",
+    g.status === "completed" && g.result ? `${RESULT_LABEL[g.result]}${g.team_score !== null && g.opponent_score !== null ? ` ${g.team_score}-${g.opponent_score}` : ""}` : null,
+    formatTime(g.start_time),
+    g.venue,
+    g.game_type === "official" ? gameTypeLabel(g) : null,
+  ]
+    .filter(Boolean)
+    .join(" ");
+}
+
 // 日付の予定を1行で(試合があれば試合を優先)
 function eventText(d: ScheduleDay): string {
-  if (d.games.length > 0) {
-    return d.games
-      .map((g) =>
-        [
-          "試合",
-          g.opponent ? `vs ${g.opponent}` : null,
-          g.status === "completed" && g.result ? `${RESULT_LABEL[g.result]}${g.team_score !== null && g.opponent_score !== null ? ` ${g.team_score}-${g.opponent_score}` : ""}` : null,
-          formatTime(g.start_time),
-          g.venue,
-          g.game_type === "official" ? gameTypeLabel(g) : null,
-        ]
-          .filter(Boolean)
-          .join(" "),
-      )
-      .join(" / ");
-  }
+  if (d.games.length > 0) return d.games.map((g, i) => gameText(g, i, d.games.length)).join(" / ");
   return [KIND_LABEL[d.kind], d.note].filter(Boolean).join(" ");
 }
 
@@ -125,9 +124,9 @@ async function ScheduleView({ params }: { params: PageProps<"/schedule/[month]">
                 </p>
               )}
               {hasGame ? (
-                d.games.map((g) => (
+                d.games.map((g, i) => (
                   <Link key={g.id} href={`/games/${g.id}`} className="block text-sm font-medium text-accent-600">
-                    {eventText({ ...d, games: [g] })} ›
+                    {gameText(g, i, d.games.length)} ›
                   </Link>
                 ))
               ) : (
@@ -154,7 +153,7 @@ async function ScheduleView({ params }: { params: PageProps<"/schedule/[month]">
               )}
               <EditorOnly>
                 <div className="mt-2 border-t border-slate-100 pt-2">
-                  <DayEditor day={d.day} kind={d.kind} note={d.note} extra={d.extra} />
+                  <DayEditor day={d.day} kind={d.kind} note={d.note} extra={d.extra} gameCount={d.games.length} />
                 </div>
               </EditorOnly>
             </li>
