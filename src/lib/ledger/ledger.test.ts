@@ -23,7 +23,7 @@ describe("summarizeLedger", () => {
     entry({ kind: "income", category: "dues", amount: 10000, player_id: A }),
     entry({ kind: "income", category: "dues", amount: 5000, player_id: A }),
     entry({ kind: "income", category: "dues", amount: 10000, player_id: B }),
-    entry({ kind: "expense", category: "umpire", amount: 2000 }), // 部費から直接
+    entry({ kind: "expense", category: "social", amount: 2000 }), // 部費から直接
     entry({ kind: "expense", category: "ground", amount: 3000, player_id: A, settled_on: "2026-05-10" }), // 精算済み
     entry({ kind: "expense", category: "ground", amount: 4000, player_id: A, entry_date: "2026-06-01" }), // 未精算
     entry({ kind: "expense", category: "equipment", amount: 6000, player_id: B, entry_date: "2026-04-01" }), // 未精算
@@ -57,7 +57,7 @@ describe("summarizeLedger", () => {
       "dues:25000",
       "ground:7000",
       "equipment:6000",
-      "umpire:2000",
+      "social:2000",
     ]);
   });
 

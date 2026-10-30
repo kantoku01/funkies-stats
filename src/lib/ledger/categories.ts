@@ -2,8 +2,7 @@ export type LedgerKind = "income" | "expense";
 
 export const INCOME_CATEGORIES = { dues: "年会費", carryover: "繰越金", other_income: "その他収入" } as const;
 export const EXPENSE_CATEGORIES = {
-  ground: "グラウンド代",
-  umpire: "審判代",
+  ground: "グラウンド・審判代",
   equipment: "ボール・用具",
   tournament: "大会参加費",
   social: "懇親会",

@@ -26,13 +26,14 @@ end $$;
 select pg_temp.expect_ok($$insert into public.ledger_entries (entry_date, kind, category, amount, player_id) values ('2026-04-01', 'income', 'dues', 10000, '10000000-0000-0000-0000-000000000001')$$, '年会費(納入者あり)');
 select pg_temp.expect_ok($$insert into public.ledger_entries (entry_date, kind, category, amount) values ('2026-01-01', 'income', 'carryover', 52000)$$, '繰越金');
 select pg_temp.expect_ok($$insert into public.ledger_entries (entry_date, kind, category, amount, player_id, game_id) values ('2026-09-20', 'expense', 'ground', 3000, '10000000-0000-0000-0000-000000000001', '20000000-0000-0000-0000-000000000001')$$, '立て替え(試合に紐づけ)');
-select pg_temp.expect_ok($$insert into public.ledger_entries (entry_date, kind, category, amount) values ('2026-09-20', 'expense', 'umpire', 2000)$$, '部費から直接');
+select pg_temp.expect_ok($$insert into public.ledger_entries (entry_date, kind, category, amount) values ('2026-09-20', 'expense', 'social', 2000)$$, '部費から直接');
 select pg_temp.expect_ok($$update public.ledger_entries set settled_on = '2026-09-27' where category = 'ground'$$, '立て替えの精算');
 
 select pg_temp.expect_error($$insert into public.ledger_entries (entry_date, kind, category, amount) values ('2026-04-01', 'income', 'dues', 10000)$$, '年会費に納入者がない');
 select pg_temp.expect_error($$insert into public.ledger_entries (entry_date, kind, category, amount, player_id) values ('2026-04-01', 'income', 'carryover', 100, '10000000-0000-0000-0000-000000000001')$$, '繰越金に選手');
 select pg_temp.expect_error($$insert into public.ledger_entries (entry_date, kind, category, amount) values ('2026-04-01', 'income', 'ground', 100)$$, '収入にグラウンド代');
 select pg_temp.expect_error($$insert into public.ledger_entries (entry_date, kind, category, amount) values ('2026-04-01', 'expense', 'food', 100)$$, '存在しない項目');
+select pg_temp.expect_error($$insert into public.ledger_entries (entry_date, kind, category, amount) values ('2026-04-01', 'expense', 'umpire', 100)$$, '審判代はグラウンド・審判代にまとめた');
 select pg_temp.expect_error($$insert into public.ledger_entries (entry_date, kind, category, amount) values ('2026-04-01', 'expense', 'ground', 0)$$, '金額0');
 select pg_temp.expect_error($$insert into public.ledger_entries (entry_date, kind, category, amount, settled_on) values ('2026-04-01', 'expense', 'ground', 100, '2026-04-02')$$, '部費から直接なのに精算日');
 select pg_temp.expect_error($$delete from public.players where id = '10000000-0000-0000-0000-000000000001'$$, '入出金のある選手は削除できない');
