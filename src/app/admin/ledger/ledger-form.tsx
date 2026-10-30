@@ -49,9 +49,9 @@ function Fields({
 
   const categories = categoriesOf(kind);
   const showPlayer = (kind === "income" && category === "dues") || (kind === "expense" && payer === "advance");
-  // 年会費は正規メンバーとマネージャー、立て替えは全員から選ぶ(在籍中を先に)
+  // 年会費は正規メンバーだけ(マネージャーは年会費なし)、立て替えは全員から選ぶ(在籍中を先に)
   const playerOptions = players
-    .filter((p) => kind === "expense" || p.kind !== "guest")
+    .filter((p) => kind === "expense" || p.kind === "regular")
     .sort((a, b) => (a.left_on ? 1 : 0) - (b.left_on ? 1 : 0));
   // 関連する試合は、日付と同じ年の試合から選ぶ
   const yearGames = games.filter((g) => g.game_date.slice(0, 4) === entryDate.slice(0, 4));

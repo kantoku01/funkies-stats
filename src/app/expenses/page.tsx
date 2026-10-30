@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { connection } from "next/server";
 import { Suspense } from "react";
+import { EditorOnly } from "@/components/editor-only";
 import { SettleButton } from "@/components/ledger/settle-button";
 import { SeasonTabs } from "@/components/season-tabs";
 import { getCurrentEditor } from "@/lib/auth";
@@ -34,10 +35,10 @@ async function ExpensesView({ searchParams }: { searchParams: PageProps<"/expens
   const nameOf = new Map(data.players.map((p) => [p.id, p.full_name]));
   const gameOf = new Map(data.games.map((g) => [g.id, g]));
 
-  // 年会費: そのシーズンに在籍していた正規メンバー・マネージャー + 納入記録のある人
+  // 年会費: そのシーズンに在籍していた正規メンバー + 納入記録のある人(マネージャーは年会費なし)
   const enrolled = data.players.filter(
     (p) =>
-      p.kind !== "guest" &&
+      p.kind === "regular" &&
       (p.joined_on ?? "") <= `${season}-12-31` &&
       (p.left_on === null || p.left_on >= `${season}-01-01`),
   );
@@ -52,13 +53,11 @@ async function ExpensesView({ searchParams }: { searchParams: PageProps<"/expens
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h1 className="text-xl font-bold">チーム経費</h1>
-        <Suspense fallback={null}>
-          <EditorOnly>
-            <Link href="/admin/ledger/new" className="flex min-h-11 items-center rounded-md bg-brand-600 px-4 font-bold text-white">
-              入出金を追加
-            </Link>
-          </EditorOnly>
-        </Suspense>
+        <EditorOnly>
+          <Link href="/admin/ledger/new" className="flex min-h-11 items-center rounded-md bg-brand-600 px-4 font-bold text-white">
+            入出金を追加
+          </Link>
+        </EditorOnly>
       </div>
 
       {/* 残高(全期間の通算) */}
@@ -95,11 +94,9 @@ async function ExpensesView({ searchParams }: { searchParams: PageProps<"/expens
                         {e.memo && <span className="text-slate-500"> {e.memo}</span>}
                       </span>
                       <span className="tabular-nums">{formatYen(e.amount)}</span>
-                      <Suspense fallback={null}>
-                        <EditorOnly>
-                          <SettleButton entryId={e.id} label={`${nameOf.get(p.playerId)}さんの立て替え ${formatYen(e.amount)}`} />
-                        </EditorOnly>
-                      </Suspense>
+                      <EditorOnly>
+                        <SettleButton entryId={e.id} label={`${nameOf.get(p.playerId)}さんの立て替え ${formatYen(e.amount)}`} />
+                      </EditorOnly>
                     </li>
                   ))}
                 </ul>
@@ -171,9 +168,6 @@ async function ExpensesView({ searchParams }: { searchParams: PageProps<"/expens
   );
 }
 
-async function EditorOnly({ children }: { children: React.ReactNode }) {
-  return (await getCurrentEditor()) ? <>{children}</> : null;
-}
 
 function Total({ label, value, className = "" }: { label: string; value: number; className?: string }) {
   return (

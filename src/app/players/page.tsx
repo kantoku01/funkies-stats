@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
+import { AddButton } from "@/components/editor-only";
 import { SeasonTabs } from "@/components/season-tabs";
 import { getSeasons, getSeasonStats } from "@/lib/data/stats";
 import { formatRate, type PlayerSeasonStats } from "@/lib/stats";
@@ -35,7 +36,10 @@ async function PlayersView({ searchParams }: { searchParams: PageProps<"/players
 
   return (
     <section className="space-y-4">
-      <h1 className="text-xl font-bold">{season}年 選手一覧</h1>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h1 className="text-xl font-bold">{season}年 選手一覧</h1>
+        <AddButton href={`/admin/players/new?season=${season}`} label="選手を追加" />
+      </div>
       <SeasonTabs seasons={seasons} current={season} href={(s) => `/players?season=${s}`} />
       <PlayerGroup title={`正規メンバー(${regulars.length}人)`} players={regulars} numbers={stats.numbers} season={season} />
       {stats.managers.length > 0 && (

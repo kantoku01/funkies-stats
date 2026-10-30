@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { connection } from "next/server";
 import { Suspense } from "react";
+import { AddButton } from "@/components/editor-only";
 import { GameList } from "@/components/game-list";
 import { categoryScore, RANKING_CATEGORIES, type RankingCategory } from "@/components/home/ranking-categories";
 import { getGamesBySeason } from "@/lib/data/games";
@@ -83,9 +84,12 @@ async function HomeView() {
               </span>
             )}
           </h2>
-          <Link href={`/games?season=${season}`} className="text-sm text-brand-700">
-            すべて見る ›
-          </Link>
+          <div className="flex items-center gap-3">
+            <Link href={`/games?season=${season}`} className="text-sm text-brand-700">
+              すべて見る ›
+            </Link>
+            <AddButton href="/admin/games/new" label="試合を追加" />
+          </div>
         </div>
         <GameList games={games.slice(0, 5)} />
       </section>
