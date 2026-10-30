@@ -30,7 +30,7 @@ export function parsePlayerForm(formData: FormData): ParsedPlayerForm {
   const values: PlayerFormValues = {
     // 全角スペースは半角にそろえる(「森 陽」と「森 陽」を同じにする)
     fullName: str(formData, "fullName").replace(/[\s　]+/g, " "),
-    kind: kindRaw === "guest" ? "guest" : "regular",
+    kind: kindRaw === "guest" || kindRaw === "manager" ? kindRaw : "regular",
     joinedOn: str(formData, "joinedOn"),
     leftOn: str(formData, "leftOn"),
     number: str(formData, "number").replace(/[０-９]/g, (c) => String.fromCharCode(c.charCodeAt(0) - 0xfee0)),
@@ -40,10 +40,11 @@ export function parsePlayerForm(formData: FormData): ParsedPlayerForm {
   if (!values.fullName) errors.fullName = "氏名を入力してください。";
   else if (values.fullName.length > 40) errors.fullName = "氏名は40文字以内で入力してください。";
 
-  if (kindRaw !== "regular" && kindRaw !== "guest") errors.kind = "区分を選んでください。";
+  if (kindRaw !== "regular" && kindRaw !== "guest" && kindRaw !== "manager") errors.kind = "区分を選んでください。";
 
-  if (values.kind === "regular") {
-    if (!values.joinedOn) errors.joinedOn = "正規メンバーは加入日が必要です。";
+  // 正規メンバーとマネージャーは加入日が必要(在籍期間で年会費や試合数を数えるため)
+  if (values.kind !== "guest") {
+    if (!values.joinedOn) errors.joinedOn = "加入日を入力してください。";
     else if (!isValidDate(values.joinedOn)) errors.joinedOn = "日付の形式が正しくありません。";
   } else if (values.joinedOn && !isValidDate(values.joinedOn)) {
     errors.joinedOn = "日付の形式が正しくありません。";

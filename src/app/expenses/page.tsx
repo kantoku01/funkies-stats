@@ -34,10 +34,10 @@ async function ExpensesView({ searchParams }: { searchParams: PageProps<"/expens
   const nameOf = new Map(data.players.map((p) => [p.id, p.full_name]));
   const gameOf = new Map(data.games.map((g) => [g.id, g]));
 
-  // 年会費: そのシーズンに在籍していた正規メンバー + 納入記録のある人
+  // 年会費: そのシーズンに在籍していた正規メンバー・マネージャー + 納入記録のある人
   const enrolled = data.players.filter(
     (p) =>
-      p.kind === "regular" &&
+      p.kind !== "guest" &&
       (p.joined_on ?? "") <= `${season}-12-31` &&
       (p.left_on === null || p.left_on >= `${season}-01-01`),
   );

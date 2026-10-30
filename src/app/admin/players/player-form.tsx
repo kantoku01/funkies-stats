@@ -40,16 +40,17 @@ export function PlayerForm({ action, initial, playerId, season, inheritedNote, s
 
       <fieldset className="space-y-1">
         <legend className="text-sm font-medium">区分</legend>
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-3 gap-2">
           {(
             [
               ["regular", "正規メンバー"],
               ["guest", "助っ人"],
+              ["manager", "マネージャー"],
             ] as const
           ).map(([value, label]) => (
             <label
               key={value}
-              className="flex min-h-11 items-center justify-center gap-2 rounded-md border border-slate-300 bg-white has-[:checked]:border-brand-600 has-[:checked]:bg-brand-50 has-[:checked]:font-bold"
+              className="flex min-h-11 items-center justify-center whitespace-nowrap rounded-md border border-slate-300 bg-white px-1 text-sm has-[:checked]:border-brand-600 has-[:checked]:bg-brand-600 has-[:checked]:font-bold has-[:checked]:text-white"
             >
               <input
                 type="radio"
@@ -57,7 +58,7 @@ export function PlayerForm({ action, initial, playerId, season, inheritedNote, s
                 value={value}
                 defaultChecked={v.kind === value}
                 onChange={() => setKind(value)}
-                className="size-4"
+                className="sr-only"
               />
               {label}
             </label>
@@ -66,7 +67,7 @@ export function PlayerForm({ action, initial, playerId, season, inheritedNote, s
         {state.errors.kind && <p className="text-sm text-red-700">{state.errors.kind}</p>}
       </fieldset>
 
-      {kind === "regular" && (
+      {kind !== "guest" && (
         <Field
           label={`${season}年の背番号`}
           error={state.errors.number}
@@ -84,7 +85,7 @@ export function PlayerForm({ action, initial, playerId, season, inheritedNote, s
       )}
 
       <Field
-        label={kind === "regular" ? "加入日" : "加入日(任意)"}
+        label={kind === "guest" ? "加入日(任意)" : "加入日"}
         error={state.errors.joinedOn}
         hint="選手の試合数は、加入日以降のチーム試合数で数えます。"
       >

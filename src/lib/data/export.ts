@@ -19,7 +19,7 @@ export const EXPORT_KINDS = {
 } as const;
 export type ExportKind = keyof typeof EXPORT_KINDS;
 
-const KIND_LABEL = { regular: "正規", guest: "助っ人" } as const;
+const KIND_LABEL = { regular: "正規", guest: "助っ人", manager: "マネージャー" } as const;
 
 // 編集者向けの CSV 書き出し(バックアップ用。ID も含める)
 export async function buildCsv(kind: ExportKind, season: number): Promise<string> {

@@ -52,13 +52,16 @@ async function PlayerView({
         <span className="text-2xl font-bold tabular-nums text-slate-400">{page.number}</span>
         <h1 className="text-2xl font-bold">{page.player.fullName}</h1>
         {page.player.kind === "guest" && <span className="text-sm text-slate-500">助っ人</span>}
+        {page.player.kind === "manager" && <span className="text-sm text-slate-500">マネージャー</span>}
       </div>
       {season !== null && (
         <SeasonTabs seasons={page.seasons} current={season} href={(s) => `/players/${id}?season=${s}`} />
       )}
 
       {!line ? (
-        <p className="text-slate-600">記録はまだありません。</p>
+        <p className="text-slate-600">
+          {page.player.kind === "manager" ? "マネージャーのため、打撃成績はありません。" : "記録はまだありません。"}
+        </p>
       ) : (
         <>
           <SeasonSummary season={season!} line={line} qualifiedLabel={qualifiedLabel(line)} />

@@ -38,6 +38,22 @@ async function PlayersView({ searchParams }: { searchParams: PageProps<"/players
       <h1 className="text-xl font-bold">{season}年 選手一覧</h1>
       <SeasonTabs seasons={seasons} current={season} href={(s) => `/players?season=${s}`} />
       <PlayerGroup title={`正規メンバー(${regulars.length}人)`} players={regulars} numbers={stats.numbers} season={season} />
+      {stats.managers.length > 0 && (
+        <div className="space-y-1">
+          <h2 className="text-sm font-bold text-slate-600">マネージャー({stats.managers.length}人)</h2>
+          <ul className="divide-y divide-slate-100 rounded-md border border-slate-200 bg-white">
+            {stats.managers.map((m) => (
+              <li key={m.playerId} className="flex min-h-14 items-center gap-3 px-3">
+                <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-accent-500/10 font-bold tabular-nums text-accent-600">
+                  {m.number || "M"}
+                </span>
+                <span className="flex-1 font-medium">{m.fullName}</span>
+                <span className="text-xs text-slate-500">マネージャー</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
       {guests.length > 0 && (
         <PlayerGroup title={`助っ人(${guests.length}人)`} players={guests} numbers={stats.numbers} season={season} />
       )}

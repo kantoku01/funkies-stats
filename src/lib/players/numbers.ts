@@ -9,7 +9,7 @@ export function findNumberConflict(
   number: string,
 ): { playerId: string; fullName: string } | null {
   for (const p of players) {
-    if (p.id === playerId || p.kind !== "regular") continue;
+    if (p.id === playerId || p.kind === "guest") continue;
     // そのシーズンが始まる前に退団した選手の番号は空いている
     if (p.left_on !== null && p.left_on < `${season}-01-01`) continue;
     if (resolveNumber(rows, p.id, season) === number) return { playerId: p.id, fullName: p.full_name };

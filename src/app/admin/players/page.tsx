@@ -20,8 +20,9 @@ export default async function PlayersPage({ searchParams }: PageProps<"/admin/pl
 
   const start = `${season}-01-01`;
   const end = `${season}-12-31`;
-  const enrolled = (p: Player) =>
-    p.kind === "regular" && (p.joined_on ?? "") <= end && (p.left_on === null || p.left_on >= start);
+  const inTerm = (p: Player) => (p.joined_on ?? "") <= end && (p.left_on === null || p.left_on >= start);
+  const enrolled = (p: Player) => p.kind === "regular" && inTerm(p);
+  const managers = players.filter((p) => p.kind === "manager" && inTerm(p));
 
   const numberOf = (p: Player) => resolveNumber(numbers, p.id, season);
   const byNumber = (a: Player, b: Player) => {
@@ -33,8 +34,9 @@ export default async function PlayersPage({ searchParams }: PageProps<"/admin/pl
 
   const sections = [
     { title: `${season}年の正規メンバー`, rows: players.filter(enrolled).sort(byNumber) },
+    { title: "マネージャー", rows: managers.sort(byNumber) },
     { title: "助っ人", rows: players.filter((p) => p.kind === "guest") },
-    { title: `${season}年は在籍していない選手`, rows: players.filter((p) => p.kind === "regular" && !enrolled(p)) },
+    { title: `${season}年は在籍していない人`, rows: players.filter((p) => p.kind !== "guest" && !inTerm(p)) },
   ];
 
   return (

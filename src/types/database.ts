@@ -5,7 +5,7 @@ import type { LedgerCategory } from "@/lib/ledger/categories";
 
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
-export type PlayerKind = "regular" | "guest";
+export type PlayerKind = "regular" | "guest" | "manager";
 export type GameResult = "win" | "lose" | "draw";
 export type PlateAppearanceResult =
   | "single"

@@ -26,6 +26,7 @@ export async function getSeasons(): Promise<number[]> {
 
 export type SeasonStatsWithNumbers = SeasonStats & {
   numbers: Record<string, string>; // player_id → 表示用の背番号(助っ人は「助」)
+  managers: { playerId: string; fullName: string; number: string }[]; // そのシーズンに在籍したマネージャー(成績なし)
 };
 
 export async function getSeasonStats(season: number): Promise<SeasonStatsWithNumbers> {
@@ -94,8 +95,17 @@ export async function getSeasonStats(season: number): Promise<SeasonStatsWithNum
   });
 
   const shown = [...stats.qualified, ...stats.unqualified, ...stats.guests];
+  const managers = players
+    .filter(
+      (p) =>
+        p.kind === "manager" &&
+        (p.joined_on ?? "") <= `${season}-12-31` &&
+        (p.left_on === null || p.left_on >= `${season}-01-01`),
+    )
+    .map((p) => ({ playerId: p.id, fullName: p.full_name, number: displayNumber(numbers, p.id, season, p.kind) }));
   return {
     ...stats,
     numbers: Object.fromEntries(shown.map((p) => [p.playerId, displayNumber(numbers, p.playerId, season, p.kind)])),
+    managers,
   };
 }

@@ -41,6 +41,9 @@ end $$;
 -- 制約
 select pg_temp.expect_count($$select season from public.games$$, 2026, 'season は試合日の年');
 select pg_temp.expect_error($$insert into public.players (full_name, kind) values ('加入日なし', 'regular')$$, '正規メンバーは加入日必須');
+select pg_temp.expect_count($$with i as (insert into public.players (full_name, kind, joined_on) values ('マネ', 'manager', '2026-04-01') returning 1) select count(*)::int from i$$, 1, 'マネージャーを登録できる');
+select pg_temp.expect_error($$insert into public.players (full_name, kind) values ('マネ2', 'manager')$$, 'マネージャーも加入日必須');
+select pg_temp.expect_error($$insert into public.players (full_name, kind, joined_on) values ('監督', 'coach', '2026-01-01')$$, '区分は3種類だけ');
 select pg_temp.expect_error($$insert into public.season_numbers values (2026, '10000000-0000-0000-0000-000000000002', '0')$$, '同シーズンの背番号重複');
 select pg_temp.expect_error($$insert into public.season_numbers values (2026, '10000000-0000-0000-0000-000000000002', 'A')$$, '背番号は数字のみ');
 select pg_temp.expect_error($$insert into public.plate_appearances (game_id, player_id, seq, result, rbi) values ('20000000-0000-0000-0000-000000000001', '10000000-0000-0000-0000-000000000001', 3, 'single', 5)$$, '打点は0〜4');

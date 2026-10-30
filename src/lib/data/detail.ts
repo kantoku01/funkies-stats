@@ -115,7 +115,7 @@ export type PlayerGameRow = {
 };
 
 export type PlayerPage = {
-  player: { id: string; fullName: string; kind: "regular" | "guest"; joinedOn: string | null; leftOn: string | null };
+  player: { id: string; fullName: string; kind: "regular" | "guest" | "manager"; joinedOn: string | null; leftOn: string | null };
   number: string;
   seasons: number[]; // 記録のあるシーズン(新しい順)
   games: PlayerGameRow[]; // 指定シーズンの出場試合(新しい順)

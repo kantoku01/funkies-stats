@@ -11,7 +11,7 @@ export function resolveNumber(rows: SeasonNumberRow[], playerId: string, season:
 }
 
 // 一覧の表示用。助っ人は「助」
-export function displayNumber(rows: SeasonNumberRow[], playerId: string, season: number, kind: "regular" | "guest"): string {
+export function displayNumber(rows: SeasonNumberRow[], playerId: string, season: number, kind: "regular" | "guest" | "manager"): string {
   if (kind === "guest") return "助";
   return resolveNumber(rows, playerId, season) ?? "";
 }

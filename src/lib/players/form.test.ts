@@ -46,6 +46,15 @@ describe("parsePlayerForm", () => {
     expect(r.ok || r.errors.number).toBe("背番号は0〜3桁の数字で入力してください。");
   });
 
+  test("マネージャーは加入日が必要で、背番号は任意", () => {
+    const ok = parsePlayerForm(fd({ fullName: "まね子", kind: "manager", joinedOn: "2026-04-01", number: "" }));
+    expect(ok.ok && ok.values.kind).toBe("manager");
+    const withNumber = parsePlayerForm(fd({ fullName: "まね子", kind: "manager", joinedOn: "2026-04-01", number: "50" }));
+    expect(withNumber.ok && withNumber.values.number).toBe("50");
+    const noJoined = parsePlayerForm(fd({ fullName: "まね子", kind: "manager" }));
+    expect(noJoined.ok || noJoined.errors.joinedOn).toBe("加入日を入力してください。");
+  });
+
   test("区分の値が不正", () => {
     const r = parsePlayerForm(fd({ fullName: "a", kind: "admin", joinedOn: "2026-01-01" }));
     expect(r.ok || r.errors.kind).toBe("区分を選んでください。");

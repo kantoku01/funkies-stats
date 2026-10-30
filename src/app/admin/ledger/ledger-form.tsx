@@ -49,9 +49,9 @@ function Fields({
 
   const categories = categoriesOf(kind);
   const showPlayer = (kind === "income" && category === "dues") || (kind === "expense" && payer === "advance");
-  // 年会費は正規メンバー、立て替えは全員から選ぶ(在籍中を先に)
+  // 年会費は正規メンバーとマネージャー、立て替えは全員から選ぶ(在籍中を先に)
   const playerOptions = players
-    .filter((p) => kind === "expense" || p.kind === "regular")
+    .filter((p) => kind === "expense" || p.kind !== "guest")
     .sort((a, b) => (a.left_on ? 1 : 0) - (b.left_on ? 1 : 0));
   // 関連する試合は、日付と同じ年の試合から選ぶ
   const yearGames = games.filter((g) => g.game_date.slice(0, 4) === entryDate.slice(0, 4));
@@ -135,7 +135,8 @@ function Fields({
             {playerOptions.map((p) => (
               <option key={p.id} value={p.id}>
                 {p.full_name}
-                {p.kind === "guest" ? "(助っ人)" : p.left_on ? "(退団)" : ""}
+                {p.kind === "guest" ? "(助っ人)" : p.kind === "manager" ? "(マネージャー)" : ""}
+                {p.left_on ? "(退団)" : ""}
               </option>
             ))}
           </select>

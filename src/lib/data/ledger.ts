@@ -12,7 +12,7 @@ const ENTRY_COLUMNS = "id, entry_date, season, kind, category, amount, memo, pla
 
 export type LedgerData = {
   entries: LedgerEntry[]; // 全期間(残高の計算に使う)。新しい順
-  players: { id: string; full_name: string; kind: "regular" | "guest"; joined_on: string | null; left_on: string | null }[];
+  players: { id: string; full_name: string; kind: "regular" | "guest" | "manager"; joined_on: string | null; left_on: string | null }[];
   games: { id: string; game_date: string; opponent: string | null }[];
 };
 
