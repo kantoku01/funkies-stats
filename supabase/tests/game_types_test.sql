@@ -27,6 +27,14 @@ select pg_temp.expect_error($$insert into public.games (game_date, result, game_
 select pg_temp.expect_error($$insert into public.tournaments (season, name) values (2026, '市民大会')$$, '同じシーズンに同名の大会');
 select pg_temp.expect_error($$delete from public.tournaments where id = '30000000-0000-0000-0000-000000000001'$$, '試合のある大会は削除できない');
 
+-- 試合予定
+select pg_temp.expect_ok($$insert into public.games (game_date, status, start_time, meet_time, venue, uniform, bring_bases) values ('2026-11-08', 'scheduled', '09:00', '08:30', '河川敷グラウンド', '白', true)$$, '予定の試合(結果なし)');
+select pg_temp.expect_error($$insert into public.games (game_date, status, result) values ('2026-11-08', 'scheduled', 'win')$$, '予定の試合に勝敗');
+select pg_temp.expect_error($$insert into public.games (game_date, status, team_score) values ('2026-11-08', 'scheduled', 3)$$, '予定の試合にスコア');
+select pg_temp.expect_error($$insert into public.games (game_date) values ('2026-11-08')$$, '終了した試合に勝敗がない');
+select pg_temp.expect_ok($$update public.games set status = 'completed', result = 'win', team_score = 5, opponent_score = 2 where venue = '河川敷グラウンド'$$, '予定 → 結果を入力して終了');
+select pg_temp.expect_error($$update public.games set status = 'scheduled' where venue = '河川敷グラウンド'$$, '結果のある試合をそのまま予定に戻せない');
+
 set role anon;
 select pg_temp.expect_ok($$select count(*) from public.tournaments$$, '匿名: 大会を閲覧できる');
 select pg_temp.expect_error($$insert into public.tournaments (season, name) values (2026, '勝手な大会')$$, '匿名: 大会を追加できない');

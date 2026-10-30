@@ -48,8 +48,8 @@ export async function createGame(_prev: GameFormState, formData: FormData): Prom
   if (error || !data) return { values: parsed.values, errors: {}, message: "保存に失敗しました。もう一度お試しください。" };
 
   updateTag(STATS_TAG);
-  // 入力の流れ: 試合を作成 → 参加者を登録
-  redirect(`/admin/games/${data.id}/participants`);
+  // 予定なら試合の画面へ。結果まで入れたら参加者の登録へ
+  redirect(parsed.record.status === "scheduled" ? `/admin/games/${data.id}` : `/admin/games/${data.id}/participants`);
 }
 
 export async function updateGame(_prev: GameFormState, formData: FormData): Promise<GameFormState> {
@@ -70,7 +70,9 @@ export async function updateGame(_prev: GameFormState, formData: FormData): Prom
   if (error) return { values: parsed.values, errors: {}, message: "保存に失敗しました。もう一度お試しください。" };
 
   updateTag(STATS_TAG);
-  redirect(`/admin/games/${id}`);
+  // 予定の試合に結果を入れたら、そのまま参加者の登録へ
+  const justFinished = formData.get("previousStatus") === "scheduled" && parsed.record.status === "completed";
+  redirect(justFinished ? `/admin/games/${id}/participants` : `/admin/games/${id}`);
 }
 
 export type DeleteGameState = { message: string | null };

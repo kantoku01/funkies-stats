@@ -20,6 +20,12 @@ describe("parseGameForm", () => {
   test("必要なのは試合日と勝敗だけ", () => {
     const r = parseGameForm(fd({ gameDate: "2026-09-20", result: "win" }));
     expect(r.ok && r.record).toEqual({
+      status: "completed",
+      start_time: null,
+      meet_time: null,
+      venue: null,
+      uniform: null,
+      bring_bases: null,
       game_date: "2026-09-20",
       opponent: null,
       team_score: null,
@@ -75,5 +81,49 @@ describe("parseGameForm", () => {
     if (!r.ok) expect(Object.keys(r.errors).sort()).toEqual(["newTournament", "stage"]);
     const open = parseGameForm(fd({ gameDate: "2026-09-20", result: "win", gameType: "open", stage: "league", roundLabel: "x" }));
     expect(open.ok && [open.record.stage, open.record.round_label, open.tournament]).toEqual([null, null, null]);
+  });
+
+  test("予定の試合: 勝敗・スコアは不要で、入っていても捨てる", () => {
+    const r = parseGameForm(
+      fd({
+        status: "scheduled",
+        gameDate: "2026-11-08",
+        startTime: "９:00",
+        meetTime: "8時30分",
+        venue: "河川敷　グラウンド",
+        uniform: "白",
+        bringBases: "need",
+        teamScore: "3",
+        result: "win",
+      }),
+    );
+    expect(r.ok && r.record).toMatchObject({
+      status: "scheduled",
+      start_time: "09:00",
+      meet_time: "08:30",
+      venue: "河川敷 グラウンド",
+      uniform: "白",
+      bring_bases: true,
+      team_score: null,
+      result: null,
+    });
+  });
+
+  test("ベース持参: 不要 / 未定", () => {
+    const none = parseGameForm(fd({ status: "scheduled", gameDate: "2026-11-08", bringBases: "none" }));
+    expect(none.ok && none.record.bring_bases).toBe(false);
+    const unknown = parseGameForm(fd({ status: "scheduled", gameDate: "2026-11-08" }));
+    expect(unknown.ok && unknown.record.bring_bases).toBeNull();
+  });
+
+  test("時刻の形式", () => {
+    const r = parseGameForm(fd({ status: "scheduled", gameDate: "2026-11-08", startTime: "25:00", meetTime: "abc" }));
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(Object.keys(r.errors).sort()).toEqual(["meetTime", "startTime"]);
+  });
+
+  test("結果を入力して終了にするときは勝敗が必要", () => {
+    const r = parseGameForm(fd({ status: "completed", gameDate: "2026-11-08" }));
+    expect(r.ok || r.errors.result).toBe("勝敗を選んでください。");
   });
 });

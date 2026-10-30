@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { connection } from "next/server";
 import { Suspense } from "react";
 import { AddButton } from "@/components/editor-only";
 import { GameFilterTabs } from "@/components/game-filter-tabs";
 import { GameList } from "@/components/game-list";
 import { SeasonTabs } from "@/components/season-tabs";
-import { getGamesBySeason } from "@/lib/data/games";
-import { getSeasons, getSeasonTournaments } from "@/lib/data/stats";
+import { getGameSeasons, getGamesBySeason } from "@/lib/data/games";
+import { getSeasonTournaments } from "@/lib/data/stats";
+import { currentYearInJapan } from "@/lib/season";
 import { matchesFilter, parseGameFilter } from "@/lib/games/type-label";
 
 export const metadata: Metadata = { title: "試合一覧" };
@@ -21,12 +23,18 @@ export default function GamesPage({ searchParams }: PageProps<"/games">) {
 
 async function GamesView({ searchParams }: { searchParams: PageProps<"/games">["searchParams"] }) {
   const params = await searchParams;
-  const seasons = await getSeasons();
+  await connection(); // 今年(日本時間)を既定にするので、リクエストごとに描画する
+  const seasons = await getGameSeasons();
+  const thisYear = currentYearInJapan(new Date());
   const n = Number(Array.isArray(params.season) ? params.season[0] : params.season);
-  const season = seasons.includes(n) ? n : (seasons[0] ?? null);
+  // 既定は今年。今年の試合がなければ、試合のある最新のシーズン
+  const season = seasons.includes(n) ? n : seasons.includes(thisYear) ? thisYear : (seasons[0] ?? null);
   const filter = parseGameFilter(params.type);
   const [allGames, tournaments] = season === null ? [[], []] : await Promise.all([getGamesBySeason(season), getSeasonTournaments(season)]);
   const games = allGames.filter((g) => matchesFilter(g, filter));
+  // 予定は日付の近い順、結果は新しい順
+  const scheduled = games.filter((g) => g.status === "scheduled").reverse();
+  const completed = games.filter((g) => g.status === "completed");
   const typeQuery = (key: string) => (key === "all" ? "" : `&type=${key}`);
 
   return (
@@ -40,7 +48,16 @@ async function GamesView({ searchParams }: { searchParams: PageProps<"/games">["
       {season !== null && (
         <GameFilterTabs current={filter.key} tournaments={tournaments} href={(k) => `/games?season=${season}${typeQuery(k)}`} />
       )}
-      <GameList games={games} />
+      {scheduled.length > 0 && (
+        <div className="space-y-1">
+          <h2 className="text-sm font-bold text-slate-600">今後の予定</h2>
+          <GameList games={scheduled} />
+        </div>
+      )}
+      <div className="space-y-1">
+        {scheduled.length > 0 && <h2 className="text-sm font-bold text-slate-600">試合結果</h2>}
+        <GameList games={completed} />
+      </div>
 
       {/* 大会ごとの勝敗 */}
       {tournaments.length > 0 && (

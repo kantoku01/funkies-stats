@@ -8,7 +8,15 @@ const STYLE: Record<GameResult, string> = {
   draw: "bg-slate-400 text-white",
 };
 
-export function GameResultBadge({ result }: { result: GameResult }) {
+// 予定の試合(結果なし)は「予」を白抜きで出す
+export function GameResultBadge({ result }: { result: GameResult | null }) {
+  if (result === null) {
+    return (
+      <span className="inline-flex size-7 shrink-0 items-center justify-center rounded-full border-2 border-brand-600 text-xs font-bold text-brand-700">
+        予
+      </span>
+    );
+  }
   return (
     <span className={`inline-flex size-7 shrink-0 items-center justify-center rounded-full text-sm font-bold ${STYLE[result]}`}>
       {RESULT_LABEL[result]}

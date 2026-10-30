@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { formatScore, GameResultBadge } from "@/components/game-result-badge";
+import { GameScheduleInfo, scheduleOf } from "@/components/game-schedule-info";
 import { GameTypeLabel } from "@/components/game-type-label";
 import { getParticipantsForAdmin } from "@/lib/data/games";
 import { formatGameDate } from "@/lib/format";
@@ -39,9 +40,20 @@ export default async function GamePage({ params }: PageProps<"/admin/games/[id]"
           <p className="font-bold">{g.opponent ?? "(対戦相手未入力)"}</p>
           <GameTypeLabel game={g} />
         </div>
-        <p className="text-2xl font-bold tabular-nums">{formatScore(g.team_score, g.opponent_score)}</p>
+        <p className="text-2xl font-bold tabular-nums">
+          {g.status === "scheduled" ? <span className="text-base text-brand-700">予定</span> : formatScore(g.team_score, g.opponent_score)}
+        </p>
       </div>
+      <GameScheduleInfo info={scheduleOf(g)} className="rounded-md border border-slate-200 bg-white p-3" />
       {g.memo && <p className="whitespace-pre-wrap text-sm text-slate-600">{g.memo}</p>}
+      {g.status === "scheduled" && (
+        <Link
+          href={`/admin/games/${g.id}/edit?result=1`}
+          className="flex min-h-12 items-center justify-center rounded-md bg-accent-500 text-lg font-bold text-white"
+        >
+          試合が終わったら:結果を入力
+        </Link>
+      )}
 
       <ol className="divide-y divide-slate-100 rounded-md border border-slate-200 bg-white">
         {steps.map((s, i) => (

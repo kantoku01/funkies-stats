@@ -10,6 +10,7 @@ type Props = {
   action: (prev: GameFormState, formData: FormData) => Promise<GameFormState>;
   initial: GameFormValues;
   gameId?: string;
+  initialStatus?: "scheduled" | "completed"; // 編集前の状態(予定 → 終了にしたら参加者登録へ進む)
   tournaments: { id: string; season: number; name: string }[];
   cancelHref: string;
   submitLabel: string;
@@ -36,6 +37,7 @@ export function GameForm(props: Props) {
 
 function GameFormFields({
   gameId,
+  initialStatus,
   tournaments,
   cancelHref,
   submitLabel,
@@ -48,6 +50,8 @@ function GameFormFields({
   const [opponentScore, setOpponentScore] = useState(v.opponentScore);
   const [result, setResult] = useState(v.result);
   const [gameDate, setGameDate] = useState(v.gameDate);
+  const [status, setStatus] = useState(v.status);
+  const [bringBases, setBringBases] = useState(v.bringBases);
   const [gameType, setGameType] = useState(v.gameType);
   const [tournamentId, setTournamentId] = useState(v.tournamentId);
   const [stage, setStage] = useState(v.stage);
@@ -65,11 +69,34 @@ function GameFormFields({
   return (
     <form action={formAction} className="space-y-5" noValidate>
       {gameId && <input type="hidden" name="id" value={gameId} />}
+      {gameId && <input type="hidden" name="previousStatus" value={initialStatus} />}
       {state.message && (
         <p role="alert" className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-800">
           {state.message}
         </p>
       )}
+
+      <fieldset className="grid grid-cols-2 gap-2">
+        <legend className="sr-only">予定か結果ありか</legend>
+        {(
+          [
+            ["scheduled", "予定"],
+            ["completed", "結果あり(終了)"],
+          ] as const
+        ).map(([value, label]) => (
+          <label key={value} className={TOGGLE}>
+            <input
+              type="radio"
+              name="status"
+              value={value}
+              checked={status === value}
+              onChange={() => setStatus(value)}
+              className="sr-only"
+            />
+            {label}
+          </label>
+        ))}
+      </fieldset>
 
       <Field label="試合日" error={state.errors.gameDate}>
         <input
@@ -86,58 +113,109 @@ function GameFormFields({
         <input name="opponent" defaultValue={v.opponent} autoComplete="off" className={`${inputBase} w-full`} />
       </Field>
 
-      <div className="space-y-1">
-        <span className="text-sm font-medium">スコア(任意)</span>
-        <div className="flex items-center gap-2">
-          <label className="flex flex-1 flex-col gap-1">
-            <span className="text-xs text-slate-500">ファンキーズ</span>
-            <input
-              name="teamScore"
-              inputMode="numeric"
-              value={teamScore}
-              onChange={(e) => onScore(e.target.value, opponentScore)}
-              className={`${inputBase} w-full text-center text-lg`}
-            />
-          </label>
-          <span className="pt-5 text-slate-400">−</span>
-          <label className="flex flex-1 flex-col gap-1">
-            <span className="text-xs text-slate-500">相手</span>
-            <input
-              name="opponentScore"
-              inputMode="numeric"
-              value={opponentScore}
-              onChange={(e) => onScore(teamScore, e.target.value)}
-              className={`${inputBase} w-full text-center text-lg`}
-            />
-          </label>
-        </div>
-        {(state.errors.teamScore || state.errors.opponentScore) && (
-          <p className="text-sm text-red-700">{state.errors.teamScore ?? state.errors.opponentScore}</p>
-        )}
+      <div className="grid grid-cols-2 gap-3">
+        <Field label="集合時間" error={state.errors.meetTime}>
+          <input name="meetTime" defaultValue={v.meetTime} type="time" className={`${inputBase} w-full`} />
+        </Field>
+        <Field label="開始時間" error={state.errors.startTime}>
+          <input name="startTime" defaultValue={v.startTime} type="time" className={`${inputBase} w-full`} />
+        </Field>
       </div>
 
-      <fieldset className="space-y-1">
-        <legend className="text-sm font-medium">勝敗</legend>
-        <div className="grid grid-cols-3 gap-2">
-          {RESULTS.map(([value, label]) => (
-            <label
-              key={value}
-              className="flex min-h-11 items-center justify-center rounded-md border border-slate-300 bg-white has-[:checked]:border-brand-600 has-[:checked]:bg-brand-600 has-[:checked]:font-bold has-[:checked]:text-white"
-            >
-              <input
-                type="radio"
-                name="result"
-                value={value}
-                checked={result === value}
-                onChange={() => setResult(value)}
-                className="sr-only"
-              />
-              {label}
-            </label>
-          ))}
+      <Field label="場所(グラウンド)" error={state.errors.venue}>
+        <input name="venue" defaultValue={v.venue} autoComplete="off" className={`${inputBase} w-full`} />
+      </Field>
+
+      <div className="grid grid-cols-2 gap-3">
+        <Field label="ユニフォームの色" error={state.errors.uniform}>
+          <input name="uniform" defaultValue={v.uniform} list="uniform-suggestions" autoComplete="off" className={`${inputBase} w-full`} />
+          <datalist id="uniform-suggestions">
+            <option value="白" />
+            <option value="青" />
+          </datalist>
+        </Field>
+        <fieldset className="space-y-1">
+          <legend className="text-sm font-medium">ベース持参</legend>
+          <div className="grid grid-cols-2 gap-1">
+            {(
+              [
+                ["need", "必要"],
+                ["none", "不要"],
+              ] as const
+            ).map(([value, label]) => (
+              <label key={value} className={TOGGLE}>
+                <input
+                  type="radio"
+                  name="bringBases"
+                  value={value}
+                  checked={bringBases === value}
+                  onChange={() => setBringBases(value)}
+                  onClick={() => bringBases === value && setBringBases("")}
+                  className="sr-only"
+                />
+                {label}
+              </label>
+            ))}
+          </div>
+        </fieldset>
+      </div>
+
+      {status === "completed" && (
+        <div className="space-y-5 rounded-md border border-brand-200 bg-brand-50/50 p-3">
+          <div className="space-y-1">
+            <span className="text-sm font-medium">スコア(任意)</span>
+            <div className="flex items-center gap-2">
+              <label className="flex flex-1 flex-col gap-1">
+                <span className="text-xs text-slate-500">ファンキーズ</span>
+                <input
+                  name="teamScore"
+                  inputMode="numeric"
+                  value={teamScore}
+                  onChange={(e) => onScore(e.target.value, opponentScore)}
+                  className={`${inputBase} w-full text-center text-lg`}
+                />
+              </label>
+              <span className="pt-5 text-slate-400">−</span>
+              <label className="flex flex-1 flex-col gap-1">
+                <span className="text-xs text-slate-500">相手</span>
+                <input
+                  name="opponentScore"
+                  inputMode="numeric"
+                  value={opponentScore}
+                  onChange={(e) => onScore(teamScore, e.target.value)}
+                  className={`${inputBase} w-full text-center text-lg`}
+                />
+              </label>
+            </div>
+            {(state.errors.teamScore || state.errors.opponentScore) && (
+              <p className="text-sm text-red-700">{state.errors.teamScore ?? state.errors.opponentScore}</p>
+            )}
+          </div>
+
+          <fieldset className="space-y-1">
+            <legend className="text-sm font-medium">勝敗</legend>
+            <div className="grid grid-cols-3 gap-2">
+              {RESULTS.map(([value, label]) => (
+                <label
+                  key={value}
+                  className="flex min-h-11 items-center justify-center rounded-md border border-slate-300 bg-white has-[:checked]:border-brand-600 has-[:checked]:bg-brand-600 has-[:checked]:font-bold has-[:checked]:text-white"
+                >
+                  <input
+                    type="radio"
+                    name="result"
+                    value={value}
+                    checked={result === value}
+                    onChange={() => setResult(value)}
+                    className="sr-only"
+                  />
+                  {label}
+                </label>
+              ))}
+            </div>
+            {state.errors.result && <p className="text-sm text-red-700">{state.errors.result}</p>}
+          </fieldset>
         </div>
-        {state.errors.result && <p className="text-sm text-red-700">{state.errors.result}</p>}
-      </fieldset>
+      )}
 
       {/* 試合の種類。公式戦は 大会 → 段階 → 回戦 */}
       <fieldset className="space-y-1">

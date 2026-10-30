@@ -6,9 +6,9 @@ import { fetchAll } from "./fetch-all";
 import { STATS_TAG } from "./stats";
 
 const GAME_COLUMNS =
-  "id, game_date, opponent, team_score, opponent_score, result, memo, game_type, tournament_id, stage, round_label, tournament:tournaments(name)" as const;
+  "id, game_date, opponent, team_score, opponent_score, result, memo, status, start_time, meet_time, venue, uniform, bring_bases, game_type, tournament_id, stage, round_label, tournament:tournaments(name)" as const;
 
-// 試合一覧(誰でも閲覧)。新しい順
+// 試合一覧(誰でも閲覧)。予定も含む。新しい順
 export async function getGamesBySeason(season: number) {
   "use cache";
   cacheTag(STATS_TAG);
@@ -24,6 +24,37 @@ export async function getGamesBySeason(season: number) {
       .order("created_at", { ascending: false })
       .range(from, to),
   );
+}
+
+// 試合一覧で選べるシーズン(予定だけのシーズンも含む。新しい順)
+export async function getGameSeasons(): Promise<number[]> {
+  "use cache";
+  cacheTag(STATS_TAG);
+  cacheLife("minutes");
+
+  const supabase = createPublicClient();
+  const rows = await fetchAll((from, to) => supabase.from("games").select("season").order("id").range(from, to));
+  return [...new Set(rows.map((r) => r.season))].sort((a, b) => b - a);
+}
+
+// 次の試合: 今日以降でいちばん近い予定(today は日本時間の YYYY-MM-DD)
+export async function getNextGame(today: string) {
+  "use cache";
+  cacheTag(STATS_TAG);
+  cacheLife("minutes");
+
+  const supabase = createPublicClient();
+  const { data, error } = await supabase
+    .from("games")
+    .select(GAME_COLUMNS)
+    .eq("status", "scheduled")
+    .gte("game_date", today)
+    .order("game_date")
+    .order("start_time", { nullsFirst: false })
+    .limit(1)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  return data;
 }
 
 // 以下は編集画面用(ログイン中のセッションで、キャッシュせず最新を読む)

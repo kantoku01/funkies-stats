@@ -18,6 +18,12 @@ export default async function NewGamePage() {
         action={createGame}
         tournaments={tournaments}
         initial={{
+          status: "scheduled",
+          startTime: "",
+          meetTime: "",
+          venue: "",
+          uniform: "",
+          bringBases: "",
           gameDate: todayInJapan(new Date()),
           opponent: "",
           teamScore: "",
@@ -31,7 +37,7 @@ export default async function NewGamePage() {
           roundLabel: "",
         }}
         cancelHref="/games"
-        submitLabel="保存して参加者の登録へ"
+        submitLabel="保存する"
       />
     </section>
   );

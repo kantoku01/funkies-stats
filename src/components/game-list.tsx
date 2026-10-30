@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { formatGameDate } from "@/lib/format";
+import { formatTime } from "@/lib/games/form";
 import type { GameTypeInfo } from "@/lib/games/type-label";
 import type { GameResult } from "@/types/database";
 import { formatScore, GameResultBadge } from "./game-result-badge";
@@ -11,13 +12,15 @@ export type GameListItem = GameTypeInfo & {
   opponent: string | null;
   team_score: number | null;
   opponent_score: number | null;
-  result: GameResult;
+  result: GameResult | null;
+  status: "scheduled" | "completed";
+  start_time: string | null;
 };
 
 // 試合の一覧(勝敗・日付・相手・スコア)。タップで試合詳細へ
-export function GameList({ games }: { games: GameListItem[] }) {
+export function GameList({ games, empty = "アプリで登録した試合はまだありません。" }: { games: GameListItem[]; empty?: string }) {
   if (games.length === 0) {
-    return <p className="text-slate-600">アプリで登録した試合はまだありません。</p>;
+    return <p className="text-sm text-slate-600">{empty}</p>;
   }
   return (
     <ul className="divide-y divide-slate-100 rounded-md border border-slate-200 bg-white">
@@ -30,7 +33,11 @@ export function GameList({ games }: { games: GameListItem[] }) {
               <span className="block truncate">{g.opponent ?? "(対戦相手未入力)"}</span>
               <GameTypeLabel game={g} />
             </span>
-            <span className="shrink-0 font-bold tabular-nums">{formatScore(g.team_score, g.opponent_score)}</span>
+            {g.status === "scheduled" ? (
+              <span className="shrink-0 text-sm tabular-nums text-brand-700">{formatTime(g.start_time) || "予定"}</span>
+            ) : (
+              <span className="shrink-0 font-bold tabular-nums">{formatScore(g.team_score, g.opponent_score)}</span>
+            )}
             <span aria-hidden className="text-slate-400">
               ›
             </span>

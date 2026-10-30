@@ -8,6 +8,7 @@ export type Json = string | number | boolean | null | { [key: string]: Json | un
 export type PlayerKind = "regular" | "guest" | "manager";
 export type GameResult = "win" | "lose" | "draw";
 export type GameType = "open" | "official";
+export type GameStatus = "scheduled" | "completed";
 export type GameStage = "league" | "knockout";
 export type PlateAppearanceResult =
   | "single"
@@ -81,8 +82,14 @@ export type Database = {
           opponent: string | null;
           team_score: number | null;
           opponent_score: number | null;
-          result: GameResult;
+          result: GameResult | null; // 予定の試合は null
           memo: string | null;
+          status: GameStatus;
+          start_time: string | null; // "09:00:00"
+          meet_time: string | null;
+          venue: string | null;
+          uniform: string | null;
+          bring_bases: boolean | null;
           game_type: GameType;
           tournament_id: string | null;
           stage: GameStage | null;
@@ -96,8 +103,14 @@ export type Database = {
           opponent?: string | null;
           team_score?: number | null;
           opponent_score?: number | null;
-          result: GameResult;
+          result?: GameResult | null;
           memo?: string | null;
+          status?: GameStatus;
+          start_time?: string | null;
+          meet_time?: string | null;
+          venue?: string | null;
+          uniform?: string | null;
+          bring_bases?: boolean | null;
           game_type?: GameType;
           tournament_id?: string | null;
           stage?: GameStage | null;

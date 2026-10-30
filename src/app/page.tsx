@@ -4,7 +4,11 @@ import { Suspense } from "react";
 import { AddButton } from "@/components/editor-only";
 import { GameList } from "@/components/game-list";
 import { categoryScore, RANKING_CATEGORIES, type RankingCategory } from "@/components/home/ranking-categories";
-import { getGamesBySeason } from "@/lib/data/games";
+import { GameScheduleInfo, scheduleOf } from "@/components/game-schedule-info";
+import { GameTypeLabel } from "@/components/game-type-label";
+import { getGamesBySeason, getNextGame } from "@/lib/data/games";
+import { formatGameDate } from "@/lib/format";
+import { todayInJapan } from "@/lib/season";
 import { getSeasons, getSeasonStats, type SeasonStatsWithNumbers } from "@/lib/data/stats";
 import { currentStreak, formatQualifyingPa, formatRate, topRanks, type PlayerSeasonStats } from "@/lib/stats";
 
@@ -30,7 +34,13 @@ async function HomeView() {
   if (season === null) {
     return <p className="text-slate-600">まだ試合が登録されていません。</p>;
   }
-  const [stats, games] = await Promise.all([getSeasonStats(season), getGamesBySeason(season)]);
+  const [stats, allGames, nextGame] = await Promise.all([
+    getSeasonStats(season),
+    getGamesBySeason(season),
+    getNextGame(todayInJapan(new Date())),
+  ]);
+  // 直近の試合・連勝は終了した試合だけで数える
+  const games = allGames.flatMap((g) => (g.status === "completed" && g.result ? [{ ...g, result: g.result }] : []));
   const t = stats.team;
   const streak = currentStreak(games.map((g) => g.result));
   const scored = games.filter((g) => g.team_score !== null && g.opponent_score !== null);
@@ -39,6 +49,24 @@ async function HomeView() {
 
   return (
     <div className="space-y-6">
+      {/* 次の試合 */}
+      {nextGame && (
+        <section className="space-y-2">
+          <h2 className="font-bold">次の試合</h2>
+          <Link
+            href={`/games/${nextGame.id}`}
+            className="block space-y-2 rounded-lg border-2 border-accent-500 bg-white p-4 hover:bg-slate-50"
+          >
+            <div className="flex items-baseline justify-between gap-2">
+              <span className="text-xl font-bold tabular-nums">{formatGameDate(nextGame.game_date)}</span>
+              <GameTypeLabel game={nextGame} />
+            </div>
+            <p className="text-lg font-bold">{nextGame.opponent ? `vs ${nextGame.opponent}` : "対戦相手未定"}</p>
+            <GameScheduleInfo info={scheduleOf(nextGame)} />
+          </Link>
+        </section>
+      )}
+
       {/* 今年のチーム成績 */}
       <section className="space-y-2">
         <div className="flex items-baseline justify-between">

@@ -8,7 +8,7 @@ import { fetchAll } from "./fetch-all";
 // 成績データのキャッシュタグ。試合・打席・選手などを書き換えたら updateTag(STATS_TAG) を呼ぶ
 export const STATS_TAG = "stats";
 
-// 試合または初期値があるシーズン(新しい順)
+// 終了した試合または初期値があるシーズン(新しい順)。予定だけのシーズンは成績の対象にしない
 export async function getSeasons(): Promise<number[]> {
   "use cache";
   cacheTag(STATS_TAG);
@@ -16,7 +16,7 @@ export async function getSeasons(): Promise<number[]> {
 
   const supabase = createPublicClient();
   const [games, baselines] = await Promise.all([
-    fetchAll((from, to) => supabase.from("games").select("season").range(from, to)),
+    fetchAll((from, to) => supabase.from("games").select("season").eq("status", "completed").order("id").range(from, to)),
     supabase.from("team_season_baselines").select("season"),
   ]);
   if (baselines.error) throw new Error(baselines.error.message);
@@ -49,6 +49,7 @@ export async function getSeasonStats(season: number, filterKey = "all"): Promise
         .from("games")
         .select("id, game_date, result, game_type, tournament_id")
         .eq("season", season)
+        .eq("status", "completed")
         .order("id")
         .range(from, to),
     ),
@@ -68,7 +69,10 @@ export async function getSeasonStats(season: number, filterKey = "all"): Promise
     supabase.from("team_season_baselines").select("*").eq("season", season).maybeSingle().then(unwrap),
   ]);
 
-  const games = allGames.filter((g) => matchesFilter(g, filter));
+  // 終了した試合だけを数える(result があるもの)
+  const games = allGames
+    .filter((g) => matchesFilter(g, filter))
+    .flatMap((g) => (g.result ? [{ ...g, result: g.result }] : []));
   const gameIds = games.map((g) => g.id);
   const [participants, plateAppearances] =
     gameIds.length === 0
@@ -146,12 +150,16 @@ export async function getSeasonTournaments(season: number): Promise<TournamentSu
         .select("tournament_id, result")
         .eq("season", season)
         .eq("game_type", "official")
+        .eq("status", "completed")
         .order("id")
         .range(from, to),
     ),
   ]);
   return tournaments.map((t) => {
-    const r = teamRecord(null, games.filter((g) => g.tournament_id === t.id));
+    const r = teamRecord(
+      null,
+      games.flatMap((g) => (g.tournament_id === t.id && g.result ? [{ result: g.result }] : [])),
+    );
     return { id: t.id, name: t.name, games: r.games, wins: r.wins, losses: r.losses, draws: r.draws };
   });
 }

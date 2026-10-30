@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { formatScore, GameResultBadge } from "@/components/game-result-badge";
+import { GameScheduleInfo } from "@/components/game-schedule-info";
 import { GameTypeLabel } from "@/components/game-type-label";
 import { PaChip } from "@/components/pa-chips";
 import { getCurrentEditor } from "@/lib/auth";
@@ -57,11 +58,14 @@ async function GameDetailView({ params }: { params: PageProps<"/games/[id]">["pa
           <h1 className="font-bold">{g.opponent ?? "(対戦相手未入力)"}</h1>
           <GameTypeLabel game={g.typeInfo} />
         </div>
-        <p className="text-2xl font-bold tabular-nums">{formatScore(g.teamScore, g.opponentScore)}</p>
+        <p className="text-2xl font-bold tabular-nums">
+          {g.status === "scheduled" ? <span className="text-base text-brand-700">予定</span> : formatScore(g.teamScore, g.opponentScore)}
+        </p>
       </div>
+      <GameScheduleInfo info={g.schedule} className="rounded-md border border-slate-200 bg-white p-3" />
       {g.memo && <p className="whitespace-pre-wrap text-sm text-slate-600">{g.memo}</p>}
 
-      {g.lines.length === 0 ? (
+      {g.status === "scheduled" ? null : g.lines.length === 0 ? (
         <p className="text-slate-600">参加者はまだ登録されていません。</p>
       ) : (
         <div className="overflow-x-auto rounded-md border border-slate-200 bg-white">
@@ -123,9 +127,11 @@ async function GameDetailView({ params }: { params: PageProps<"/games/[id]">["pa
           </table>
         </div>
       )}
+      {g.status === "completed" && (
       <p className="text-xs text-slate-500">
         単・二・三・本 = 安打 / 四・死 = 四死球 / 犠飛・犠打 / 凡 = 凡退。右上の小さな数字は打点。
       </p>
+      )}
     </section>
   );
 }

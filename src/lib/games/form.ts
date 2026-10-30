@@ -1,7 +1,13 @@
-import type { GameResult, GameStage, GameType } from "@/types/database";
+import type { GameResult, GameStage, GameStatus, GameType } from "@/types/database";
 
 export type GameFormValues = {
+  status: GameStatus; // 予定 / 終了(結果あり)
   gameDate: string;
+  startTime: string; // "09:00"
+  meetTime: string;
+  venue: string;
+  uniform: string;
+  bringBases: "" | "need" | "none"; // ベース持参: 必要 / 不要 / 未定
   opponent: string;
   teamScore: string;
   opponentScore: string;
@@ -17,11 +23,17 @@ export type GameFormValues = {
 export type GameFormErrors = Partial<Record<keyof GameFormValues, string>>;
 
 export type GameRecord = {
+  status: GameStatus;
+  start_time: string | null;
+  meet_time: string | null;
+  venue: string | null;
+  uniform: string | null;
+  bring_bases: boolean | null;
   game_date: string;
   opponent: string | null;
   team_score: number | null;
   opponent_score: number | null;
-  result: GameResult;
+  result: GameResult | null;
   memo: string | null;
   game_type: GameType;
   stage: GameStage | null;
@@ -45,6 +57,28 @@ function isValidDate(s: string): boolean {
   return !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === s;
 }
 
+// "9:00" / "09:00" / "9時" を受け付ける
+function isValidTime(s: string): boolean {
+  const m = /^(\d{1,2})[:時](\d{2})?分?$/.exec(s);
+  if (!m) return false;
+  const h = Number(m[1]);
+  const min = Number(m[2] ?? "0");
+  return h <= 23 && min <= 59;
+}
+
+// "9:00" → "09:00"
+export function normalizeTime(s: string): string {
+  const m = /^(\d{1,2})[:時](\d{2})?/.exec(s)!;
+  return `${m[1].padStart(2, "0")}:${m[2] ?? "00"}`;
+}
+
+// DB の "09:00:00" → 画面の "9:00"
+export function formatTime(t: string | null): string {
+  if (!t) return "";
+  const [h, m] = t.split(":");
+  return `${Number(h)}:${m}`;
+}
+
 // 得点から勝敗を決める(両方入っているときだけ)
 export function resultFromScores(team: string, opponent: string): GameResult | null {
   if (team === "" || opponent === "") return null;
@@ -57,8 +91,15 @@ export function resultFromScores(team: string, opponent: string): GameResult | n
 export function parseGameForm(formData: FormData): ParsedGameForm {
   const str = (key: string) => String(formData.get(key) ?? "").trim();
   const resultRaw = str("result");
+  const bases = str("bringBases");
   const values: GameFormValues = {
+    status: str("status") === "scheduled" ? "scheduled" : "completed",
     gameDate: str("gameDate"),
+    startTime: toHalfWidth(str("startTime")),
+    meetTime: toHalfWidth(str("meetTime")),
+    venue: str("venue").replace(/[\s　]+/g, " "),
+    uniform: str("uniform"),
+    bringBases: bases === "need" || bases === "none" ? bases : "",
     opponent: str("opponent").replace(/[\s　]+/g, " "),
     teamScore: toHalfWidth(str("teamScore")),
     opponentScore: toHalfWidth(str("opponentScore")),
@@ -77,15 +118,23 @@ export function parseGameForm(formData: FormData): ParsedGameForm {
 
   if (values.opponent.length > 40) errors.opponent = "対戦相手は40文字以内で入力してください。";
 
-  for (const key of ["teamScore", "opponentScore"] as const) {
-    if (values[key] !== "" && !/^\d{1,3}$/.test(values[key])) errors[key] = "0以上の数字で入力してください。";
+  const completed = values.status === "completed";
+  if (completed) {
+    for (const key of ["teamScore", "opponentScore"] as const) {
+      if (values[key] !== "" && !/^\d{1,3}$/.test(values[key])) errors[key] = "0以上の数字で入力してください。";
+    }
+    if (!values.result) errors.result = "勝敗を選んでください。";
+    else if (!errors.teamScore && !errors.opponentScore) {
+      const fromScores = resultFromScores(values.teamScore, values.opponentScore);
+      if (fromScores && fromScores !== values.result) errors.result = "スコアと勝敗が合っていません。";
+    }
   }
 
-  if (!values.result) errors.result = "勝敗を選んでください。";
-  else if (!errors.teamScore && !errors.opponentScore) {
-    const fromScores = resultFromScores(values.teamScore, values.opponentScore);
-    if (fromScores && fromScores !== values.result) errors.result = "スコアと勝敗が合っていません。";
+  for (const key of ["startTime", "meetTime"] as const) {
+    if (values[key] !== "" && !isValidTime(values[key])) errors[key] = "時刻は 9:00 のように入力してください。";
   }
+  if (values.venue.length > 60) errors.venue = "場所は60文字以内で入力してください。";
+  if (values.uniform.length > 30) errors.uniform = "ユニフォームの色は30文字以内で入力してください。";
 
   if (values.memo.length > 200) errors.memo = "メモは200文字以内で入力してください。";
 
@@ -110,11 +159,18 @@ export function parseGameForm(formData: FormData): ParsedGameForm {
     ok: true,
     values,
     record: {
+      status: values.status,
+      start_time: values.startTime ? normalizeTime(values.startTime) : null,
+      meet_time: values.meetTime ? normalizeTime(values.meetTime) : null,
+      venue: values.venue || null,
+      uniform: values.uniform || null,
+      bring_bases: values.bringBases === "" ? null : values.bringBases === "need",
       game_date: values.gameDate,
       opponent: values.opponent || null,
-      team_score: values.teamScore === "" ? null : Number(values.teamScore),
-      opponent_score: values.opponentScore === "" ? null : Number(values.opponentScore),
-      result: values.result as GameResult,
+      // 予定の試合はスコアと勝敗を持たない
+      team_score: completed && values.teamScore !== "" ? Number(values.teamScore) : null,
+      opponent_score: completed && values.opponentScore !== "" ? Number(values.opponentScore) : null,
+      result: completed ? (values.result as GameResult) : null,
       memo: values.memo || null,
       game_type: values.gameType,
       stage: values.gameType === "official" ? (values.stage as GameStage) : null,

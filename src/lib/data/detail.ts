@@ -24,8 +24,10 @@ export type GameDetail = {
   opponent: string | null;
   teamScore: number | null;
   opponentScore: number | null;
-  result: GameResult;
+  result: GameResult | null;
   memo: string | null;
+  status: "scheduled" | "completed";
+  schedule: { startTime: string | null; meetTime: string | null; venue: string | null; uniform: string | null; bringBases: boolean | null };
   typeInfo: GameTypeInfo;
   lines: GameLine[]; // 打順 → 背番号 → 助っ人の順
 };
@@ -40,7 +42,7 @@ export async function getGameDetail(id: string): Promise<GameDetail | null> {
   const { data: game, error } = await supabase
     .from("games")
     .select(
-      "id, season, game_date, opponent, team_score, opponent_score, result, memo, game_type, stage, round_label, tournament:tournaments(name)",
+      "id, season, game_date, opponent, team_score, opponent_score, result, memo, status, start_time, meet_time, venue, uniform, bring_bases, game_type, stage, round_label, tournament:tournaments(name)",
     )
     .eq("id", id)
     .maybeSingle();
@@ -103,6 +105,14 @@ export async function getGameDetail(id: string): Promise<GameDetail | null> {
     opponentScore: game.opponent_score,
     result: game.result,
     memo: game.memo,
+    status: game.status,
+    schedule: {
+      startTime: game.start_time,
+      meetTime: game.meet_time,
+      venue: game.venue,
+      uniform: game.uniform,
+      bringBases: game.bring_bases,
+    },
     typeInfo: { game_type: game.game_type, stage: game.stage, round_label: game.round_label, tournament: game.tournament },
     lines,
   };
@@ -148,7 +158,7 @@ export async function getPlayerPage(playerId: string, season: number | null): Pr
       supabase
         .from("game_participants")
         .select(
-          "game_id, extra_stolen_bases, games!inner(season, game_date, opponent, result, team_score, opponent_score, game_type, tournament_id)",
+          "game_id, extra_stolen_bases, games!inner(season, game_date, opponent, result, team_score, opponent_score, game_type, tournament_id, status)",
         )
         .eq("player_id", playerId)
         .order("game_id")
@@ -166,7 +176,8 @@ export async function getPlayerPage(playerId: string, season: number | null): Pr
   ].sort((a, b) => b - a);
   const target = season !== null && seasons.includes(season) ? season : (seasons[0] ?? null);
 
-  const inSeason = participations.filter((p) => p.games.season === target);
+  // 個人成績に出すのは終了した試合だけ
+  const inSeason = participations.filter((p) => p.games.season === target && p.games.status === "completed" && p.games.result);
   const gameIds = inSeason.map((p) => p.game_id);
   const pas =
     gameIds.length === 0
@@ -189,7 +200,7 @@ export async function getPlayerPage(playerId: string, season: number | null): Pr
       tournamentId: p.games.tournament_id,
       gameDate: p.games.game_date,
       opponent: p.games.opponent,
-      result: p.games.result,
+      result: p.games.result!,
       teamScore: p.games.team_score,
       opponentScore: p.games.opponent_score,
       extraStolenBases: p.extra_stolen_bases,

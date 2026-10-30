@@ -47,7 +47,9 @@ export async function buildCsv(kind: ExportKind, season: number): Promise<string
   const games = await fetchAll((from, to) =>
     supabase
       .from("games")
-      .select("id, game_date, opponent, team_score, opponent_score, result, memo, game_type, stage, round_label, tournament:tournaments(name)")
+      .select(
+        "id, game_date, opponent, team_score, opponent_score, result, memo, status, start_time, meet_time, venue, uniform, bring_bases, game_type, stage, round_label, tournament:tournaments(name)",
+      )
       .order("game_date")
       .order("id")
       .range(from, to),
@@ -60,14 +62,20 @@ export async function buildCsv(kind: ExportKind, season: number): Promise<string
 
   if (kind === "games") {
     return toCsv(
-      ["試合ID", "試合日", "対戦相手", "得点", "失点", "勝敗", "種類", "大会", "段階", "回戦", "メモ"],
+      ["試合ID", "試合日", "状態", "開始", "集合", "場所", "ユニフォーム", "ベース持参", "対戦相手", "得点", "失点", "勝敗", "種類", "大会", "段階", "回戦", "メモ"],
       games.map((g) => [
         g.id,
         g.game_date,
+        g.status === "scheduled" ? "予定" : "終了",
+        g.start_time?.slice(0, 5) ?? "",
+        g.meet_time?.slice(0, 5) ?? "",
+        g.venue,
+        g.uniform,
+        g.bring_bases === null ? "" : g.bring_bases ? "必要" : "不要",
         g.opponent,
         g.team_score,
         g.opponent_score,
-        GAME_RESULT_LABEL[g.result],
+        g.result ? GAME_RESULT_LABEL[g.result] : "",
         GAME_TYPE_LABEL[g.game_type],
         g.tournament?.name ?? "",
         g.stage ? STAGE_LABEL[g.stage] : "",
