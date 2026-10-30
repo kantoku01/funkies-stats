@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { formatScore, GameResultBadge } from "@/components/game-result-badge";
+import { GameTypeLabel } from "@/components/game-type-label";
 import { PaChip } from "@/components/pa-chips";
 import { getCurrentEditor } from "@/lib/auth";
 import { battingSummary } from "@/lib/batting/entry";
@@ -54,6 +55,7 @@ async function GameDetailView({ params }: { params: PageProps<"/games/[id]">["pa
             {g.season}/{formatGameDate(g.gameDate)}
           </p>
           <h1 className="font-bold">{g.opponent ?? "(対戦相手未入力)"}</h1>
+          <GameTypeLabel game={g.typeInfo} />
         </div>
         <p className="text-2xl font-bold tabular-nums">{formatScore(g.teamScore, g.opponentScore)}</p>
       </div>

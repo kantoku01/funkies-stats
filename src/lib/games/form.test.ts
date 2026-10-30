@@ -26,6 +26,9 @@ describe("parseGameForm", () => {
       opponent_score: null,
       result: "win",
       memo: null,
+      game_type: "open",
+      stage: null,
+      round_label: null,
     });
   });
 
@@ -47,5 +50,30 @@ describe("parseGameForm", () => {
     const r = parseGameForm(fd({ gameDate: "2026-13-01", teamScore: "-1", result: "" }));
     expect(r.ok).toBe(false);
     if (!r.ok) expect(Object.keys(r.errors).sort()).toEqual(["gameDate", "result", "teamScore"]);
+  });
+
+  test("公式戦: 既存の大会・新しい大会", () => {
+    const T = "30000000-0000-0000-0000-000000000001";
+    const existing = parseGameForm(
+      fd({ gameDate: "2026-09-20", result: "win", gameType: "official", tournamentId: T, stage: "knockout", roundLabel: "1回戦" }),
+    );
+    expect(existing.ok && [existing.record.game_type, existing.record.stage, existing.record.round_label, existing.tournament]).toEqual([
+      "official",
+      "knockout",
+      "1回戦",
+      { id: T },
+    ]);
+    const created = parseGameForm(
+      fd({ gameDate: "2026-09-20", result: "win", gameType: "official", tournamentId: "new", newTournament: " 秋季　大会 ", stage: "league" }),
+    );
+    expect(created.ok && [created.tournament, created.record.round_label]).toEqual([{ newName: "秋季 大会" }, null]);
+  });
+
+  test("公式戦で大会・段階がないとエラー。オープン戦は大会情報を捨てる", () => {
+    const r = parseGameForm(fd({ gameDate: "2026-09-20", result: "win", gameType: "official", tournamentId: "new" }));
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(Object.keys(r.errors).sort()).toEqual(["newTournament", "stage"]);
+    const open = parseGameForm(fd({ gameDate: "2026-09-20", result: "win", gameType: "open", stage: "league", roundLabel: "x" }));
+    expect(open.ok && [open.record.stage, open.record.round_label, open.tournament]).toEqual([null, null, null]);
   });
 });

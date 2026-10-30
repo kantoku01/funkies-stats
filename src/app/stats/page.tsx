@@ -3,8 +3,10 @@ import { Suspense } from "react";
 import { toRow, toTeamRow } from "@/components/leaderboard/build-rows";
 import type { LeaderboardGroup } from "@/components/leaderboard/columns";
 import { LeaderboardTable } from "@/components/leaderboard/leaderboard-table";
+import { filterSummary, GameFilterTabs } from "@/components/game-filter-tabs";
 import { SeasonTabs } from "@/components/season-tabs";
-import { getSeasons, getSeasonStats } from "@/lib/data/stats";
+import { getSeasons, getSeasonStats, getSeasonTournaments } from "@/lib/data/stats";
+import { parseGameFilter } from "@/lib/games/type-label";
 import { formatQualifyingPa } from "@/lib/stats";
 
 export const metadata: Metadata = { title: "成績一覧" };
@@ -45,7 +47,10 @@ async function SeasonStatsView({ searchParams }: { searchParams: PageProps<"/sta
     );
   }
 
-  const stats = await getSeasonStats(season);
+  const filter = parseGameFilter(params.type);
+  const [stats, tournaments] = await Promise.all([getSeasonStats(season, filter.key), getSeasonTournaments(season)]);
+  const typeQuery = (key: string) => (key === "all" ? "" : `&type=${key}`);
+  const summary = filterSummary(filter.key, stats.team, tournaments);
   const groups: LeaderboardGroup[] = [
     { key: "qualified", label: null, rows: stats.qualified.map((p) => toRow(p, stats.numbers[p.playerId])) },
     { key: "unqualified", label: "規定未達", rows: stats.unqualified.map((p) => toRow(p, stats.numbers[p.playerId])) },
@@ -57,10 +62,17 @@ async function SeasonStatsView({ searchParams }: { searchParams: PageProps<"/sta
     <section className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h1 className="text-xl font-bold">{season}年 成績一覧</h1>
-        <SeasonTabs seasons={seasons} current={season} href={(s) => `/stats?season=${s}`} />
+        <SeasonTabs seasons={seasons} current={season} href={(s) => `/stats?season=${s}${filter.kind === "tournament" ? "" : typeQuery(filter.key)}`} />
       </div>
 
 
+      <GameFilterTabs current={filter.key} tournaments={tournaments} href={(k) => `/stats?season=${season}${typeQuery(k)}`} />
+      {summary && (
+        <p className="text-sm">
+          <span className="font-bold">{summary}</span>
+          <span className="ml-2 text-xs text-slate-500">(アプリで入力した試合のみ。9/13までの移行データは含みません)</span>
+        </p>
+      )}
       <p className="flex gap-4 text-sm text-slate-600">
         {formatAsOf(stats.asOf) && <span>{formatAsOf(stats.asOf)}</span>}
         <span>規定打席 {formatQualifyingPa(stats.team.games)}</span>

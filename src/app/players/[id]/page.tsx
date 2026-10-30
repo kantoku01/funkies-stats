@@ -4,10 +4,12 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { GameResultBadge } from "@/components/game-result-badge";
 import { PaChip } from "@/components/pa-chips";
+import { GameFilterTabs } from "@/components/game-filter-tabs";
 import { SeasonTabs } from "@/components/season-tabs";
 import { battingSummary } from "@/lib/batting/entry";
 import { getPlayerPage } from "@/lib/data/detail";
-import { getSeasonStats } from "@/lib/data/stats";
+import { getSeasonStats, getSeasonTournaments } from "@/lib/data/stats";
+import { matchesFilter, parseGameFilter } from "@/lib/games/type-label";
 import { formatGameDate } from "@/lib/format";
 import { formatRate, type PlayerSeasonStats } from "@/lib/stats";
 
@@ -37,10 +39,14 @@ async function PlayerView({
   if (!page) notFound();
 
   const season = page.seasons.includes(requested) ? requested : (page.seasons[0] ?? null);
-  const stats = season === null ? null : await getSeasonStats(season);
+  const filter = parseGameFilter(query.type);
+  const [stats, tournaments] =
+    season === null ? [null, []] : await Promise.all([getSeasonStats(season, filter.key), getSeasonTournaments(season)]);
+  const games = page.games.filter((g) => matchesFilter({ game_type: g.gameType, tournament_id: g.tournamentId }, filter));
+  const typeQuery = (key: string) => (key === "all" ? "" : `&type=${key}`);
   const line = stats && [...stats.qualified, ...stats.unqualified, ...stats.guests].find((p) => p.playerId === id);
   // 初期値(移行データ)の分 = シーズン累計 − アプリで入力した試合の分
-  const appGames = page.games.length;
+  const appGames = games.length;
   const baselineAttendance = line ? line.attendance - appGames : 0;
 
   return (
@@ -57,6 +63,9 @@ async function PlayerView({
       {season !== null && (
         <SeasonTabs seasons={page.seasons} current={season} href={(s) => `/players/${id}?season=${s}`} />
       )}
+      {season !== null && page.player.kind !== "manager" && (
+        <GameFilterTabs current={filter.key} tournaments={tournaments} href={(k) => `/players/${id}?season=${season}${typeQuery(k)}`} />
+      )}
 
       {!line ? (
         <p className="text-slate-600">
@@ -69,7 +78,7 @@ async function PlayerView({
           <div className="space-y-1">
             <h2 className="text-sm font-bold text-slate-600">試合ごとの成績</h2>
             <ul className="divide-y divide-slate-100 rounded-md border border-slate-200 bg-white">
-              {page.games.map((g) => {
+              {games.map((g) => {
                 const rbi = g.entries.reduce((s, e) => s + e.rbi, 0);
                 const sb = g.extraStolenBases + g.entries.reduce((s, e) => s + e.stolenBases, 0);
                 return (
@@ -95,7 +104,7 @@ async function PlayerView({
                   </li>
                 );
               })}
-              {baselineAttendance > 0 && (
+              {filter.kind === "all" && baselineAttendance > 0 && (
                 <li className="px-3 py-2 text-sm text-slate-500">
                   ほかに、9/13 時点までの移行データ({baselineAttendance}試合出席)を含みます。
                 </li>

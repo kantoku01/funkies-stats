@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { formatScore, GameResultBadge } from "@/components/game-result-badge";
+import { GameTypeLabel } from "@/components/game-type-label";
 import { getParticipantsForAdmin } from "@/lib/data/games";
 import { formatGameDate } from "@/lib/format";
 import { loadGame } from "../load-game";
@@ -36,6 +37,7 @@ export default async function GamePage({ params }: PageProps<"/admin/games/[id]"
         <div className="flex-1">
           <p className="text-sm text-slate-500">{label}</p>
           <p className="font-bold">{g.opponent ?? "(対戦相手未入力)"}</p>
+          <GameTypeLabel game={g} />
         </div>
         <p className="text-2xl font-bold tabular-nums">{formatScore(g.team_score, g.opponent_score)}</p>
       </div>

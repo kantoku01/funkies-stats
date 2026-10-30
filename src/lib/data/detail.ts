@@ -1,6 +1,7 @@
 import "server-only";
 import { cacheLife, cacheTag } from "next/cache";
 import { battingOrderSort, type BattingEntry } from "@/lib/batting/entry";
+import type { GameTypeInfo } from "@/lib/games/type-label";
 import { resolveNumber } from "@/lib/stats";
 import { createPublicClient } from "@/lib/supabase/public";
 import type { GameResult } from "@/types/database";
@@ -25,6 +26,7 @@ export type GameDetail = {
   opponentScore: number | null;
   result: GameResult;
   memo: string | null;
+  typeInfo: GameTypeInfo;
   lines: GameLine[]; // 打順 → 背番号 → 助っ人の順
 };
 
@@ -37,7 +39,9 @@ export async function getGameDetail(id: string): Promise<GameDetail | null> {
   const supabase = createPublicClient();
   const { data: game, error } = await supabase
     .from("games")
-    .select("id, season, game_date, opponent, team_score, opponent_score, result, memo")
+    .select(
+      "id, season, game_date, opponent, team_score, opponent_score, result, memo, game_type, stage, round_label, tournament:tournaments(name)",
+    )
     .eq("id", id)
     .maybeSingle();
   if (error) throw new Error(error.message);
@@ -99,12 +103,15 @@ export async function getGameDetail(id: string): Promise<GameDetail | null> {
     opponentScore: game.opponent_score,
     result: game.result,
     memo: game.memo,
+    typeInfo: { game_type: game.game_type, stage: game.stage, round_label: game.round_label, tournament: game.tournament },
     lines,
   };
 }
 
 export type PlayerGameRow = {
   gameId: string;
+  gameType: "open" | "official";
+  tournamentId: string | null;
   gameDate: string;
   opponent: string | null;
   result: GameResult;
@@ -140,7 +147,9 @@ export async function getPlayerPage(playerId: string, season: number | null): Pr
     fetchAll((from, to) =>
       supabase
         .from("game_participants")
-        .select("game_id, extra_stolen_bases, games!inner(season, game_date, opponent, result, team_score, opponent_score)")
+        .select(
+          "game_id, extra_stolen_bases, games!inner(season, game_date, opponent, result, team_score, opponent_score, game_type, tournament_id)",
+        )
         .eq("player_id", playerId)
         .order("game_id")
         .range(from, to),
@@ -176,6 +185,8 @@ export async function getPlayerPage(playerId: string, season: number | null): Pr
   const games: PlayerGameRow[] = inSeason
     .map((p) => ({
       gameId: p.game_id,
+      gameType: p.games.game_type,
+      tournamentId: p.games.tournament_id,
       gameDate: p.games.game_date,
       opponent: p.games.opponent,
       result: p.games.result,

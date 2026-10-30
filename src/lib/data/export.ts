@@ -1,5 +1,6 @@
 import "server-only";
 import { RESULT_LABEL } from "@/lib/batting/entry";
+import { GAME_TYPE_LABEL, STAGE_LABEL } from "@/lib/games/type-label";
 import { CATEGORY_LABEL } from "@/lib/ledger/categories";
 import { STAT_COLUMNS } from "@/components/leaderboard/columns";
 import { toRow, toTeamRow } from "@/components/leaderboard/build-rows";
@@ -46,7 +47,7 @@ export async function buildCsv(kind: ExportKind, season: number): Promise<string
   const games = await fetchAll((from, to) =>
     supabase
       .from("games")
-      .select("id, game_date, opponent, team_score, opponent_score, result, memo")
+      .select("id, game_date, opponent, team_score, opponent_score, result, memo, game_type, stage, round_label, tournament:tournaments(name)")
       .order("game_date")
       .order("id")
       .range(from, to),
@@ -59,8 +60,20 @@ export async function buildCsv(kind: ExportKind, season: number): Promise<string
 
   if (kind === "games") {
     return toCsv(
-      ["試合ID", "試合日", "対戦相手", "得点", "失点", "勝敗", "メモ"],
-      games.map((g) => [g.id, g.game_date, g.opponent, g.team_score, g.opponent_score, GAME_RESULT_LABEL[g.result], g.memo]),
+      ["試合ID", "試合日", "対戦相手", "得点", "失点", "勝敗", "種類", "大会", "段階", "回戦", "メモ"],
+      games.map((g) => [
+        g.id,
+        g.game_date,
+        g.opponent,
+        g.team_score,
+        g.opponent_score,
+        GAME_RESULT_LABEL[g.result],
+        GAME_TYPE_LABEL[g.game_type],
+        g.tournament?.name ?? "",
+        g.stage ? STAGE_LABEL[g.stage] : "",
+        g.round_label,
+        g.memo,
+      ]),
     );
   }
 

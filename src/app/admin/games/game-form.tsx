@@ -3,17 +3,21 @@
 import Link from "next/link";
 import { useActionState, useState } from "react";
 import { resultFromScores, type GameFormValues } from "@/lib/games/form";
+import { ROUND_SUGGESTIONS, STAGE_LABEL } from "@/lib/games/type-label";
 import type { GameFormState } from "./actions";
 
 type Props = {
   action: (prev: GameFormState, formData: FormData) => Promise<GameFormState>;
   initial: GameFormValues;
   gameId?: string;
+  tournaments: { id: string; season: number; name: string }[];
   cancelHref: string;
   submitLabel: string;
 };
 
 const inputBase = "block min-h-11 rounded-md border border-slate-300 bg-white px-3 text-base";
+const TOGGLE =
+  "flex min-h-11 items-center justify-center rounded-md border border-slate-300 bg-white has-[:checked]:border-brand-600 has-[:checked]:bg-brand-600 has-[:checked]:font-bold has-[:checked]:text-white";
 const RESULTS = [
   ["win", "勝ち"],
   ["lose", "負け"],
@@ -32,6 +36,7 @@ export function GameForm(props: Props) {
 
 function GameFormFields({
   gameId,
+  tournaments,
   cancelHref,
   submitLabel,
   state,
@@ -42,6 +47,12 @@ function GameFormFields({
   const [teamScore, setTeamScore] = useState(v.teamScore);
   const [opponentScore, setOpponentScore] = useState(v.opponentScore);
   const [result, setResult] = useState(v.result);
+  const [gameDate, setGameDate] = useState(v.gameDate);
+  const [gameType, setGameType] = useState(v.gameType);
+  const [tournamentId, setTournamentId] = useState(v.tournamentId);
+  const [stage, setStage] = useState(v.stage);
+  // 大会は試合日と同じ年のものから選ぶ
+  const seasonTournaments = tournaments.filter((t) => String(t.season) === gameDate.slice(0, 4));
 
   // スコアを両方入れたら勝敗を自動で選ぶ(手で変えることもできる)
   const onScore = (team: string, opp: string) => {
@@ -61,7 +72,14 @@ function GameFormFields({
       )}
 
       <Field label="試合日" error={state.errors.gameDate}>
-        <input type="date" name="gameDate" defaultValue={v.gameDate} required className={`${inputBase} w-full`} />
+        <input
+          type="date"
+          name="gameDate"
+          value={gameDate}
+          onChange={(e) => setGameDate(e.target.value)}
+          required
+          className={`${inputBase} w-full`}
+        />
       </Field>
 
       <Field label="対戦相手(任意)" error={state.errors.opponent}>
@@ -120,6 +138,91 @@ function GameFormFields({
         </div>
         {state.errors.result && <p className="text-sm text-red-700">{state.errors.result}</p>}
       </fieldset>
+
+      {/* 試合の種類。公式戦は 大会 → 段階 → 回戦 */}
+      <fieldset className="space-y-1">
+        <legend className="text-sm font-medium">試合の種類</legend>
+        <div className="grid grid-cols-2 gap-2">
+          {(
+            [
+              ["open", "オープン戦"],
+              ["official", "公式戦"],
+            ] as const
+          ).map(([value, label]) => (
+            <label key={value} className={TOGGLE}>
+              <input
+                type="radio"
+                name="gameType"
+                value={value}
+                checked={gameType === value}
+                onChange={() => setGameType(value)}
+                className="sr-only"
+              />
+              {label}
+            </label>
+          ))}
+        </div>
+      </fieldset>
+
+      {gameType === "official" && (
+        <div className="space-y-4 rounded-md bg-slate-50 p-3">
+          <Field label="大会" error={state.errors.tournamentId}>
+            <select
+              name="tournamentId"
+              value={tournamentId}
+              onChange={(e) => setTournamentId(e.target.value)}
+              className={`${inputBase} w-full`}
+            >
+              <option value="">選んでください</option>
+              {seasonTournaments.map((t) => (
+                <option key={t.id} value={t.id}>
+                  {t.name}
+                </option>
+              ))}
+              <option value="new">+ 新しい大会を追加</option>
+            </select>
+          </Field>
+          {tournamentId === "new" && (
+            <Field label="新しい大会の名前" error={state.errors.newTournament}>
+              <input name="newTournament" defaultValue={v.newTournament} autoComplete="off" className={`${inputBase} w-full`} />
+            </Field>
+          )}
+          <fieldset className="space-y-1">
+            <legend className="text-sm font-medium">段階</legend>
+            <div className="grid grid-cols-2 gap-2">
+              {(["league", "knockout"] as const).map((value) => (
+                <label key={value} className={TOGGLE}>
+                  <input
+                    type="radio"
+                    name="stage"
+                    value={value}
+                    checked={stage === value}
+                    onChange={() => setStage(value)}
+                    className="sr-only"
+                  />
+                  {STAGE_LABEL[value]}
+                </label>
+              ))}
+            </div>
+            {state.errors.stage && <p className="text-sm text-red-700">{state.errors.stage}</p>}
+          </fieldset>
+          <Field label="回戦・ブロック(任意)" error={state.errors.roundLabel}>
+            <input
+              name="roundLabel"
+              defaultValue={v.roundLabel}
+              list="round-suggestions"
+              autoComplete="off"
+              placeholder={stage === "league" ? "例:Aブロック 第1戦" : "例:1回戦、準決勝"}
+              className={`${inputBase} w-full`}
+            />
+            <datalist id="round-suggestions">
+              {(stage ? ROUND_SUGGESTIONS[stage] : []).map((r) => (
+                <option key={r} value={r} />
+              ))}
+            </datalist>
+          </Field>
+        </div>
+      )}
 
       <Field label="メモ(任意)" error={state.errors.memo}>
         <textarea name="memo" defaultValue={v.memo} rows={2} className={`${inputBase} w-full py-2`} />

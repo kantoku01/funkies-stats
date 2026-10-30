@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { getCurrentEditor } from "@/lib/auth";
 import { getParticipantsForAdmin } from "@/lib/data/games";
 import { STATS_TAG } from "@/lib/data/stats";
-import { parseGameForm, type GameFormErrors, type GameFormValues } from "@/lib/games/form";
+import { parseGameForm, type GameFormErrors, type GameFormValues, type TournamentChoice } from "@/lib/games/form";
 import { planParticipants } from "@/lib/games/participants";
 import { createClient } from "@/lib/supabase/server";
 
@@ -18,13 +18,33 @@ async function requireEditor(next: string) {
 
 export type GameFormState = { values: GameFormValues; errors: GameFormErrors; message: string | null };
 
+// 公式戦の大会 ID を決める。新しい大会名なら、その年の大会として登録する(同名があればそれを使う)
+async function resolveTournament(choice: TournamentChoice, gameDate: string): Promise<string | null | "error"> {
+  if (choice === null) return null;
+  if ("id" in choice) return choice.id;
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("tournaments")
+    .upsert({ season: Number(gameDate.slice(0, 4)), name: choice.newName }, { onConflict: "season,name" })
+    .select("id")
+    .single();
+  return error || !data ? "error" : data.id;
+}
+
 export async function createGame(_prev: GameFormState, formData: FormData): Promise<GameFormState> {
   await requireEditor("/admin/games/new");
   const parsed = parseGameForm(formData);
   if (!parsed.ok) return { values: parsed.values, errors: parsed.errors, message: null };
 
+  const tournamentId = await resolveTournament(parsed.tournament, parsed.record.game_date);
+  if (tournamentId === "error") return { values: parsed.values, errors: {}, message: "大会の登録に失敗しました。" };
+
   const supabase = await createClient();
-  const { data, error } = await supabase.from("games").insert(parsed.record).select("id").single();
+  const { data, error } = await supabase
+    .from("games")
+    .insert({ ...parsed.record, tournament_id: tournamentId })
+    .select("id")
+    .single();
   if (error || !data) return { values: parsed.values, errors: {}, message: "保存に失敗しました。もう一度お試しください。" };
 
   updateTag(STATS_TAG);
@@ -39,8 +59,14 @@ export async function updateGame(_prev: GameFormState, formData: FormData): Prom
   if (!parsed.ok) return { values: parsed.values, errors: parsed.errors, message: null };
   if (!UUID.test(id)) return { values: parsed.values, errors: {}, message: "試合が見つかりません。" };
 
+  const tournamentId = await resolveTournament(parsed.tournament, parsed.record.game_date);
+  if (tournamentId === "error") return { values: parsed.values, errors: {}, message: "大会の登録に失敗しました。" };
+
   const supabase = await createClient();
-  const { error } = await supabase.from("games").update(parsed.record).eq("id", id);
+  const { error } = await supabase
+    .from("games")
+    .update({ ...parsed.record, tournament_id: tournamentId })
+    .eq("id", id);
   if (error) return { values: parsed.values, errors: {}, message: "保存に失敗しました。もう一度お試しください。" };
 
   updateTag(STATS_TAG);

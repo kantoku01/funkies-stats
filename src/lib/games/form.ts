@@ -1,4 +1,4 @@
-import type { GameResult } from "@/types/database";
+import type { GameResult, GameStage, GameType } from "@/types/database";
 
 export type GameFormValues = {
   gameDate: string;
@@ -7,6 +7,11 @@ export type GameFormValues = {
   opponentScore: string;
   result: GameResult | "";
   memo: string;
+  gameType: GameType;
+  tournamentId: string; // 既存の大会の ID、または "new"(新しい大会を作る)
+  newTournament: string;
+  stage: GameStage | "";
+  roundLabel: string;
 };
 
 export type GameFormErrors = Partial<Record<keyof GameFormValues, string>>;
@@ -18,11 +23,19 @@ export type GameRecord = {
   opponent_score: number | null;
   result: GameResult;
   memo: string | null;
+  game_type: GameType;
+  stage: GameStage | null;
+  round_label: string | null;
 };
 
+// 公式戦の大会: 既存の大会か、新しく作る大会の名前
+export type TournamentChoice = { id: string } | { newName: string } | null;
+
 export type ParsedGameForm =
-  | { ok: true; values: GameFormValues; record: GameRecord }
+  | { ok: true; values: GameFormValues; record: GameRecord; tournament: TournamentChoice }
   | { ok: false; values: GameFormValues; errors: GameFormErrors };
+
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 const toHalfWidth = (s: string) => s.replace(/[０-９]/g, (c) => String.fromCharCode(c.charCodeAt(0) - 0xfee0));
 
@@ -51,6 +64,11 @@ export function parseGameForm(formData: FormData): ParsedGameForm {
     opponentScore: toHalfWidth(str("opponentScore")),
     result: resultRaw === "win" || resultRaw === "lose" || resultRaw === "draw" ? resultRaw : "",
     memo: str("memo"),
+    gameType: str("gameType") === "official" ? "official" : "open",
+    tournamentId: str("tournamentId"),
+    newTournament: str("newTournament").replace(/[\s　]+/g, " "),
+    stage: str("stage") === "league" || str("stage") === "knockout" ? (str("stage") as GameStage) : "",
+    roundLabel: str("roundLabel"),
   };
   const errors: GameFormErrors = {};
 
@@ -71,6 +89,22 @@ export function parseGameForm(formData: FormData): ParsedGameForm {
 
   if (values.memo.length > 200) errors.memo = "メモは200文字以内で入力してください。";
 
+  // 公式戦は大会と段階が必要。回戦は任意
+  let tournament: TournamentChoice = null;
+  if (values.gameType === "official") {
+    if (values.tournamentId === "new") {
+      if (!values.newTournament) errors.newTournament = "大会名を入力してください。";
+      else if (values.newTournament.length > 60) errors.newTournament = "大会名は60文字以内で入力してください。";
+      else tournament = { newName: values.newTournament };
+    } else if (UUID.test(values.tournamentId)) {
+      tournament = { id: values.tournamentId };
+    } else {
+      errors.tournamentId = "大会を選んでください。";
+    }
+    if (!values.stage) errors.stage = "予選リーグか決勝トーナメントかを選んでください。";
+    if (values.roundLabel.length > 30) errors.roundLabel = "回戦は30文字以内で入力してください。";
+  }
+
   if (Object.keys(errors).length > 0) return { ok: false, values, errors };
   return {
     ok: true,
@@ -82,6 +116,10 @@ export function parseGameForm(formData: FormData): ParsedGameForm {
       opponent_score: values.opponentScore === "" ? null : Number(values.opponentScore),
       result: values.result as GameResult,
       memo: values.memo || null,
+      game_type: values.gameType,
+      stage: values.gameType === "official" ? (values.stage as GameStage) : null,
+      round_label: values.gameType === "official" ? values.roundLabel || null : null,
     },
+    tournament,
   };
 }

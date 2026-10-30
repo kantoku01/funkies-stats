@@ -5,7 +5,8 @@ import { createClient } from "@/lib/supabase/server";
 import { fetchAll } from "./fetch-all";
 import { STATS_TAG } from "./stats";
 
-const GAME_COLUMNS = "id, game_date, opponent, team_score, opponent_score, result, memo" as const;
+const GAME_COLUMNS =
+  "id, game_date, opponent, team_score, opponent_score, result, memo, game_type, tournament_id, stage, round_label, tournament:tournaments(name)" as const;
 
 // 試合一覧(誰でも閲覧)。新しい順
 export async function getGamesBySeason(season: number) {
@@ -66,5 +67,13 @@ export async function getPlateAppearancesForAdmin(gameId: string) {
       .order("player_id")
       .order("seq")
       .range(from, to),
+  );
+}
+
+// 編集画面用: 大会の一覧(新しい年から)
+export async function getTournamentsForAdmin() {
+  const supabase = await createClient();
+  return fetchAll((from, to) =>
+    supabase.from("tournaments").select("id, season, name").order("season", { ascending: false }).order("name").range(from, to),
   );
 }

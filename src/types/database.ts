@@ -7,6 +7,8 @@ export type Json = string | number | boolean | null | { [key: string]: Json | un
 
 export type PlayerKind = "regular" | "guest" | "manager";
 export type GameResult = "win" | "lose" | "draw";
+export type GameType = "open" | "official";
+export type GameStage = "league" | "knockout";
 export type PlateAppearanceResult =
   | "single"
   | "double"
@@ -81,6 +83,10 @@ export type Database = {
           opponent_score: number | null;
           result: GameResult;
           memo: string | null;
+          game_type: GameType;
+          tournament_id: string | null;
+          stage: GameStage | null;
+          round_label: string | null;
           created_at: string;
         };
         // season は game_date から自動計算されるので書き込まない
@@ -92,10 +98,22 @@ export type Database = {
           opponent_score?: number | null;
           result: GameResult;
           memo?: string | null;
+          game_type?: GameType;
+          tournament_id?: string | null;
+          stage?: GameStage | null;
+          round_label?: string | null;
           created_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["games"]["Insert"]>;
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "games_tournament_id_fkey";
+            columns: ["tournament_id"];
+            isOneToOne: false;
+            referencedRelation: "tournaments";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       game_participants: {
         Row: {
@@ -222,6 +240,12 @@ export type Database = {
             referencedColumns: ["id"];
           },
         ];
+      };
+      tournaments: {
+        Row: { id: string; season: number; name: string; created_at: string };
+        Insert: { id?: string; season: number; name: string; created_at?: string };
+        Update: Partial<Database["public"]["Tables"]["tournaments"]["Insert"]>;
+        Relationships: [];
       };
       editors: {
         Row: { user_id: string; display_name: string };
