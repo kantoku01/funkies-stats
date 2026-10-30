@@ -1,5 +1,6 @@
 import "server-only";
 import { RESULT_LABEL } from "@/lib/batting/entry";
+import { CATEGORY_LABEL } from "@/lib/ledger/categories";
 import { STAT_COLUMNS } from "@/components/leaderboard/columns";
 import { toRow, toTeamRow } from "@/components/leaderboard/build-rows";
 import { toCsv } from "@/lib/csv";
@@ -14,6 +15,7 @@ export const EXPORT_KINDS = {
   participants: "参加者(全試合)",
   games: "試合(全試合)",
   players: "選手",
+  ledger: "チーム経費(入出金)",
 } as const;
 export type ExportKind = keyof typeof EXPORT_KINDS;
 
@@ -59,6 +61,31 @@ export async function buildCsv(kind: ExportKind, season: number): Promise<string
     return toCsv(
       ["試合ID", "試合日", "対戦相手", "得点", "失点", "勝敗", "メモ"],
       games.map((g) => [g.id, g.game_date, g.opponent, g.team_score, g.opponent_score, GAME_RESULT_LABEL[g.result], g.memo]),
+    );
+  }
+
+  if (kind === "ledger") {
+    const entries = await fetchAll((from, to) =>
+      supabase
+        .from("ledger_entries")
+        .select("id, entry_date, kind, category, amount, memo, player_id, settled_on, game_id")
+        .order("entry_date")
+        .order("created_at")
+        .range(from, to),
+    );
+    return toCsv(
+      ["記録ID", "日付", "収支", "項目", "金額", "選手", "精算日", "関連する試合", "メモ"],
+      entries.map((e) => [
+        e.id,
+        e.entry_date,
+        e.kind === "income" ? "収入" : "支出",
+        CATEGORY_LABEL[e.category],
+        e.amount,
+        e.player_id ? (nameOf.get(e.player_id) ?? "") : e.kind === "expense" ? "部費から直接" : "",
+        e.settled_on,
+        e.game_id ? (gameById.get(e.game_id)?.game_date ?? "") : "",
+        e.memo,
+      ]),
     );
   }
 

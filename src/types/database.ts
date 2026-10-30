@@ -1,6 +1,8 @@
 // DB の型。supabase/migrations と対応させて手で管理している。
 // Supabase CLI を使える環境では `npx supabase gen types typescript --project-id <id>` の出力で置き換えてよい。
 
+import type { LedgerCategory } from "@/lib/ledger/categories";
+
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
 export type PlayerKind = "regular" | "guest";
@@ -175,6 +177,51 @@ export type Database = {
         Insert: { season: number; games: number; wins: number; losses: number; draws?: number; as_of: string };
         Update: Partial<Database["public"]["Tables"]["team_season_baselines"]["Insert"]>;
         Relationships: [];
+      };
+      ledger_entries: {
+        Row: {
+          id: string;
+          entry_date: string;
+          season: number;
+          kind: "income" | "expense";
+          category: LedgerCategory;
+          amount: number;
+          memo: string | null;
+          player_id: string | null;
+          settled_on: string | null;
+          game_id: string | null;
+          created_at: string;
+        };
+        // season は entry_date から自動計算されるので書き込まない
+        Insert: {
+          id?: string;
+          entry_date: string;
+          kind: "income" | "expense";
+          category: LedgerCategory;
+          amount: number;
+          memo?: string | null;
+          player_id?: string | null;
+          settled_on?: string | null;
+          game_id?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["ledger_entries"]["Insert"]>;
+        Relationships: [
+          {
+            foreignKeyName: "ledger_entries_player_id_fkey";
+            columns: ["player_id"];
+            isOneToOne: false;
+            referencedRelation: "players";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "ledger_entries_game_id_fkey";
+            columns: ["game_id"];
+            isOneToOne: false;
+            referencedRelation: "games";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       editors: {
         Row: { user_id: string; display_name: string };

@@ -5,6 +5,7 @@ const menu = [
   { label: "試合を追加", href: "/admin/games/new", step: null },
   { label: "試合一覧(編集・参加者登録・打撃入力)", href: "/games", step: null },
   { label: "選手管理(背番号)", href: "/admin/players", step: null },
+  { label: "チーム経費(入出金の入力・精算)", href: "/expenses", step: null },
   { label: "CSV書き出し", href: "/admin/export", step: null },
 ];
 

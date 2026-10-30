@@ -28,14 +28,14 @@ export async function getPlayerForAdmin(id: string) {
   return data;
 }
 
-// 試合の記録か初期値があるか(あれば削除させない)
+// 試合の記録・初期値・入出金があるか(あれば削除させない)
 export async function playerHasRecords(id: string): Promise<boolean> {
   const supabase = await createClient();
-  const [participants, baselines] = await Promise.all([
+  const [participants, baselines, ledger] = await Promise.all([
     supabase.from("game_participants").select("game_id", { count: "exact", head: true }).eq("player_id", id),
     supabase.from("season_baselines").select("season", { count: "exact", head: true }).eq("player_id", id),
+    supabase.from("ledger_entries").select("id", { count: "exact", head: true }).eq("player_id", id),
   ]);
-  if (participants.error) throw new Error(participants.error.message);
-  if (baselines.error) throw new Error(baselines.error.message);
-  return (participants.count ?? 0) + (baselines.count ?? 0) > 0;
+  for (const r of [participants, baselines, ledger]) if (r.error) throw new Error(r.error.message);
+  return (participants.count ?? 0) + (baselines.count ?? 0) + (ledger.count ?? 0) > 0;
 }

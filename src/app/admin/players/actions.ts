@@ -119,9 +119,9 @@ export async function deletePlayer(_prev: DeleteState, formData: FormData): Prom
   const id = String(formData.get("id") ?? "");
   const season = parseSeason(formData);
 
-  // 記録(試合の参加・初期値)のある選手を消すとチーム合計が変わるので消させない
+  // 記録(試合の参加・初期値・入出金)のある選手を消すと合計が変わるので消させない
   if (await playerHasRecords(id)) {
-    return { message: "試合の記録があるため削除できません。辞めた選手は退団日を入れてください。" };
+    return { message: "試合や経費の記録があるため削除できません。辞めた選手は退団日を入れてください。" };
   }
 
   const supabase = await createClient();
@@ -130,7 +130,7 @@ export async function deletePlayer(_prev: DeleteState, formData: FormData): Prom
     return {
       message:
         error.code === "23503"
-          ? "試合の記録があるため削除できません。辞めた選手は退団日を入れてください。"
+          ? "試合や経費の記録があるため削除できません。辞めた選手は退団日を入れてください。"
           : "削除に失敗しました。",
     };
   }
