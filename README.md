@@ -72,6 +72,24 @@ npm install
 npm run dev                  # http://localhost:3000
 ```
 
+### 5. LINE の自動送信(任意)
+
+LINE 公式アカウントからチームのグループに、試合前日18時に連絡、試合翌日10時にスケジュールを自動で送る。
+試合の画面の「チームのグループに送る」で手で送った前日連絡は、自動では送らない。
+
+1. [LINE Official Account Manager](https://manager.line.biz/) で公式アカウントを作り、設定 > Messaging API で有効にする
+2. [LINE Developers](https://developers.line.biz/console/) でそのチャネルを開き、
+   - Messaging API 設定 > Webhook URL に `https://funkies-stats.vercel.app/api/line/webhook` を入れ、「Webhook の利用」をオン
+   - 同じ画面の「グループトーク・複数人トークへの参加を許可する」をオン(Official Account Manager の応答設定にある場合も)
+   - チャネルアクセストークン(長期)を発行
+3. Vercel の Settings > Environment Variables に次を登録して、Redeploy する
+   - `LINE_CHANNEL_ACCESS_TOKEN`(チャネルアクセストークン)/ `LINE_CHANNEL_SECRET`(チャネル基本設定のチャネルシークレット)
+   - `SUPABASE_SECRET_KEY`(Supabase > Project Settings > API Keys の Secret key)
+   - `CRON_SECRET`(長いランダムな文字列)
+4. 公式アカウントをチームのグループに招待する(招待した時点で送り先として記録される)
+
+無料プランは月200通まで(グループへの1回の送信は、グループの人数分として数えられる)。
+
 ## 開発コマンド
 
 | コマンド | 内容 |

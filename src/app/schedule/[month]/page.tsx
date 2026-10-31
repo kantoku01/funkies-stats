@@ -18,7 +18,7 @@ import {
   shiftMonth,
   type Answer,
 } from "@/lib/schedule/month";
-import { buildScheduleMessage } from "@/lib/schedule/share-message";
+import { scheduleMessage } from "@/lib/line/messages";
 import { todayInJapan } from "@/lib/season";
 import { AnswerForm } from "./answer-form";
 import { AddDateForm, DayEditor } from "./day-editor";
@@ -165,20 +165,13 @@ function AnswerNames({
 
 const RESULT_COLOR = { win: "text-red-600", lose: "text-brand-600", draw: "text-slate-500" } as const;
 
-// 「LINEで送る」の文面: 今日以降の予定(今月から3か月分。何も決まっていない月は出さない)
+// 「LINEで送る」の文面: 今日以降の予定
 async function ScheduleShare() {
   await connection();
   const today = todayInJapan(new Date());
   const h = await headers();
   const siteUrl = `${h.get("x-forwarded-proto") ?? "https"}://${h.get("host")}`;
-  const first = parseMonth(today.slice(0, 7))!;
-  const months = await Promise.all(
-    [0, 1, 2].map(async (i) => {
-      const month = shiftMonth(first, i);
-      return { month, days: (await getScheduleMonth(month)).days };
-    }),
-  );
-  return <ShareButtons message={buildScheduleMessage(siteUrl, today, months)} />;
+  return <ShareButtons message={await scheduleMessage(siteUrl, today)} />;
 }
 
 async function ScheduleView({ params }: { params: PageProps<"/schedule/[month]">["params"] }) {
