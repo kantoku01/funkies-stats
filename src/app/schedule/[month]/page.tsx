@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { EditorOnly } from "@/components/editor-only";
 import { gameTypeLabel } from "@/lib/games/type-label";
-import { formatTime } from "@/lib/games/form";
+import { formatGameTime } from "@/lib/games/form";
 import { getScheduleMonth, type ScheduleDay, type ScheduleMember } from "@/lib/data/schedule";
 import { formatGameDate, RESULT_LABEL } from "@/lib/format";
 import {
@@ -48,7 +48,7 @@ function gameText(g: ScheduleDay["games"][number], i: number, total: number): st
     total > 1 ? `第${i + 1}試合` : "試合",
     g.opponent ? `vs ${g.opponent}` : "(相手未定)",
     g.status === "completed" && g.result ? `${RESULT_LABEL[g.result]}${g.team_score !== null && g.opponent_score !== null ? ` ${g.team_score}-${g.opponent_score}` : ""}` : null,
-    formatTime(g.start_time),
+    formatGameTime(g.start_time),
     g.venue,
     g.game_type === "official" ? gameTypeLabel(g) : null,
   ]

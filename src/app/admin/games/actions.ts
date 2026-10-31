@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { getCurrentEditor } from "@/lib/auth";
 import { getParticipantsForAdmin } from "@/lib/data/games";
 import { STATS_TAG } from "@/lib/data/stats";
-import { parseGameForm, type GameFormErrors, type GameFormValues, type TournamentChoice } from "@/lib/games/form";
+import { parseGameForm, tournamentNameWithYear, type GameFormErrors, type GameFormValues, type TournamentChoice } from "@/lib/games/form";
 import { planParticipants } from "@/lib/games/participants";
 import { createClient } from "@/lib/supabase/server";
 
@@ -23,9 +23,10 @@ async function resolveTournament(choice: TournamentChoice, gameDate: string): Pr
   if (choice === null) return null;
   if ("id" in choice) return choice.id;
   const supabase = await createClient();
+  const season = Number(gameDate.slice(0, 4));
   const { data, error } = await supabase
     .from("tournaments")
-    .upsert({ season: Number(gameDate.slice(0, 4)), name: choice.newName }, { onConflict: "season,name" })
+    .upsert({ season, name: tournamentNameWithYear(choice.newName, season) }, { onConflict: "season,name" })
     .select("id")
     .single();
   return error || !data ? "error" : data.id;

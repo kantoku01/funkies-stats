@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { parseGameForm, resultFromScores } from "./form";
+import { formatGameTime, parseGameForm, resultFromScores, tournamentNameWithYear } from "./form";
 
 const fd = (entries: Record<string, string>) => {
   const f = new FormData();
@@ -125,5 +125,20 @@ describe("parseGameForm", () => {
   test("結果を入力して終了にするときは勝敗が必要", () => {
     const r = parseGameForm(fd({ status: "completed", gameDate: "2026-11-08" }));
     expect(r.ok || r.errors.result).toBe("勝敗を選んでください。");
+  });
+});
+
+describe("formatGameTime", () => {
+  test("開始から2時間", () => {
+    expect(formatGameTime("13:00:00")).toBe("13:00〜15:00");
+    expect(formatGameTime("07:30:00")).toBe("7:30〜9:30");
+    expect(formatGameTime(null)).toBe("");
+  });
+});
+
+describe("tournamentNameWithYear", () => {
+  test("年度がなければ先頭に付ける", () => {
+    expect(tournamentNameWithYear("スカイカップエンジョイ1部", 2026)).toBe("2026スカイカップエンジョイ1部");
+    expect(tournamentNameWithYear("2026スカイカップ", 2026)).toBe("2026スカイカップ");
   });
 });

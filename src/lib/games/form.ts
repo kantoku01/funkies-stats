@@ -79,6 +79,19 @@ export function formatTime(t: string | null): string {
   return `${Number(h)}:${m}`;
 }
 
+// 試合はすべて2時間。開始時間から「13:00〜15:00」を作る
+export const GAME_HOURS = 2;
+export function formatGameTime(start: string | null): string {
+  if (!start) return "";
+  const [h, m] = start.split(":");
+  return `${formatTime(start)}〜${(Number(h) + GAME_HOURS) % 24}:${m}`;
+}
+
+// 大会名には年度を付ける(「スカイカップ」→「2026スカイカップ」)。付いていればそのまま
+export function tournamentNameWithYear(name: string, season: number): string {
+  return name.startsWith(String(season)) ? name : `${season}${name}`;
+}
+
 // 得点から勝敗を決める(両方入っているときだけ)
 export function resultFromScores(team: string, opponent: string): GameResult | null {
   if (team === "" || opponent === "") return null;

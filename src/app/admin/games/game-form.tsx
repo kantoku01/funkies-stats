@@ -262,7 +262,13 @@ function GameFormFields({
           </Field>
           {tournamentId === "new" && (
             <Field label="新しい大会の名前" error={state.errors.newTournament}>
-              <input name="newTournament" defaultValue={v.newTournament} autoComplete="off" className={`${inputBase} w-full`} />
+              <input
+                name="newTournament"
+                defaultValue={v.newTournament}
+                autoComplete="off"
+                placeholder="例: スカイカップエンジョイ1部(年度は自動で付きます)"
+                className={`${inputBase} w-full`}
+              />
             </Field>
           )}
           <fieldset className="space-y-1">

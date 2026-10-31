@@ -1,4 +1,4 @@
-import { formatTime } from "@/lib/games/form";
+import { formatGameTime, formatTime } from "@/lib/games/form";
 
 export type ScheduleInfo = {
   startTime: string | null;
@@ -12,7 +12,7 @@ export type ScheduleInfo = {
 export function GameScheduleInfo({ info, className = "" }: { info: ScheduleInfo; className?: string }) {
   const rows = [
     ["集合", formatTime(info.meetTime)],
-    ["開始", formatTime(info.startTime)],
+    ["時間", formatGameTime(info.startTime)],
     ["場所", info.venue],
     ["ユニフォーム", info.uniform],
     ["ベース持参", info.bringBases === null ? null : info.bringBases ? "必要" : "不要"],
