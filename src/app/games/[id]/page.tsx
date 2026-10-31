@@ -9,6 +9,8 @@ import { PaChip } from "@/components/pa-chips";
 import { getCurrentEditor } from "@/lib/auth";
 import { battingSummary } from "@/lib/batting/entry";
 import { getGameDetail } from "@/lib/data/detail";
+import { getScheduleMonth } from "@/lib/data/schedule";
+import { ANSWER_MARK, parseMonth } from "@/lib/schedule/month";
 import { formatGameDate } from "@/lib/format";
 
 export const metadata: Metadata = { title: "試合詳細" };
@@ -65,7 +67,11 @@ async function GameDetailView({ params }: { params: PageProps<"/games/[id]">["pa
       <GameScheduleInfo info={g.schedule} className="rounded-md border border-slate-200 bg-white p-3" />
       {g.memo && <p className="whitespace-pre-wrap text-sm text-slate-600">{g.memo}</p>}
 
-      {g.status === "scheduled" ? null : g.lines.length === 0 ? (
+      {g.status === "scheduled" ? (
+        <Suspense fallback={null}>
+          <GameAttendance day={g.gameDate} />
+        </Suspense>
+      ) : g.lines.length === 0 ? (
         <p className="text-slate-600">参加者はまだ登録されていません。</p>
       ) : (
         <div className="overflow-x-auto rounded-md border border-slate-200 bg-white">
@@ -142,5 +148,55 @@ async function EditLink({ gameId }: { gameId: string }) {
     <Link href={`/admin/games/${gameId}`} className="flex min-h-11 items-center rounded-md border border-slate-300 bg-white px-3 text-sm">
       編集
     </Link>
+  );
+}
+
+// 予定の試合: その日の出欠(○△×と未回答)を参加者一覧として出す
+async function GameAttendance({ day }: { day: string }) {
+  const { days, members } = await getScheduleMonth(parseMonth(day.slice(0, 7))!);
+  const d = days.find((x) => x.day === day);
+  const active = members.filter((m) => m.joinedOn <= day && (m.leftOn === null || m.leftOn >= day));
+  const answerOf = (id: string) => d?.answers[id];
+  const groups = (["yes", "maybe", "no"] as const).map((a) => ({ a, who: active.filter((m) => answerOf(m.id)?.answer === a) }));
+  const unanswered = active.filter((m) => !answerOf(m.id));
+  const yes = groups[0].who;
+  const yesPlayers = yes.filter((m) => m.kind === "regular").length;
+
+  return (
+    <div className="space-y-2 rounded-md border border-slate-200 bg-white p-3">
+      <div className="flex items-baseline justify-between gap-2">
+        <h2 className="font-bold">参加者(出欠)</h2>
+        <Link href={`/schedule/${day.slice(0, 7)}`} className="text-sm text-brand-700">
+          出欠を回答する ›
+        </Link>
+      </div>
+      <p className="text-sm">
+        <span className="font-bold text-red-600">○ 参加 {yes.length}人</span>
+        <span className="text-slate-500">
+          (選手{yesPlayers}人・マネージャー{yes.length - yesPlayers}人)
+        </span>
+      </p>
+      <ul className="space-y-1.5 text-sm">
+        {groups.map(({ a, who }) => (
+          <li key={a} className="flex gap-2">
+            <span className={`w-5 shrink-0 font-bold ${a === "yes" ? "text-red-600" : a === "maybe" ? "text-amber-600" : "text-slate-500"}`}>
+              {ANSWER_MARK[a]}
+            </span>
+            <span className={who.length === 0 ? "text-slate-400" : ""}>
+              {who.length === 0
+                ? "なし"
+                : who.map((m) => {
+                    const c = answerOf(m.id)?.comment;
+                    return c ? `${m.name}(${c})` : m.name;
+                  }).join("、")}
+            </span>
+          </li>
+        ))}
+        <li className="flex gap-2 text-slate-500">
+          <span className="w-5 shrink-0 text-xs leading-5">未</span>
+          <span>{unanswered.length === 0 ? "なし" : unanswered.map((m) => m.name).join("、")}</span>
+        </li>
+      </ul>
+    </div>
   );
 }
