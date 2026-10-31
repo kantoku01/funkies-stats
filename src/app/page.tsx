@@ -43,9 +43,6 @@ async function HomeView() {
   const games = allGames.flatMap((g) => (g.status === "completed" && g.result ? [{ ...g, result: g.result }] : []));
   const t = stats.team;
   const streak = currentStreak(games.map((g) => g.result));
-  const scored = games.filter((g) => g.team_score !== null && g.opponent_score !== null);
-  const runsFor = scored.reduce((s, g) => s + (g.team_score ?? 0), 0);
-  const runsAgainst = scored.reduce((s, g) => s + (g.opponent_score ?? 0), 0);
 
   return (
     <div className="space-y-6">
@@ -99,11 +96,6 @@ async function HomeView() {
             <TeamStat label="チームOPS" value={formatRate(stats.teamBatting.ops)} />
             <TeamStat label="本塁打" value={String(stats.teamBatting.homeRuns)} />
           </dl>
-          {scored.length > 0 && (
-            <p className="mt-2 text-center text-xs text-brand-100">
-              得点 {runsFor}・失点 {runsAgainst}(スコアを入力した{scored.length}試合)
-            </p>
-          )}
         </div>
       </section>
 
