@@ -4,7 +4,7 @@ import { battingOrderSort, type BattingEntry } from "@/lib/batting/entry";
 import type { GameTypeInfo } from "@/lib/games/type-label";
 import { resolveNumber } from "@/lib/stats";
 import { createPublicClient } from "@/lib/supabase/public";
-import type { GameResult } from "@/types/database";
+import type { GameResult, GameStatus } from "@/types/database";
 import { fetchAll } from "./fetch-all";
 import { STATS_TAG } from "./stats";
 
@@ -26,7 +26,7 @@ export type GameDetail = {
   opponentScore: number | null;
   result: GameResult | null;
   memo: string | null;
-  status: "scheduled" | "completed";
+  status: GameStatus;
   schedule: { startTime: string | null; meetTime: string | null; venue: string | null; uniform: string | null; bringBases: boolean | null };
   typeInfo: GameTypeInfo;
   lines: GameLine[]; // 打順 → 背番号 → 助っ人の順

@@ -1,7 +1,7 @@
 import type { GameResult, GameStage, GameStatus, GameType } from "@/types/database";
 
 export type GameFormValues = {
-  status: GameStatus; // 予定 / 終了(結果あり)
+  status: GameStatus; // 予定 / 終了(結果あり) / 雨天中止
   gameDate: string;
   startTime: string; // "09:00"
   meetTime: string;
@@ -117,7 +117,7 @@ export function parseGameForm(formData: FormData): ParsedGameForm {
   const resultRaw = str("result");
   const bases = str("bringBases");
   const values: GameFormValues = {
-    status: str("status") === "scheduled" ? "scheduled" : "completed",
+    status: str("status") === "scheduled" ? "scheduled" : str("status") === "cancelled" ? "cancelled" : "completed",
     gameDate: str("gameDate"),
     startTime: toHalfWidth(str("startTime")),
     meetTime: toHalfWidth(str("meetTime")),
@@ -196,7 +196,7 @@ export function parseGameForm(formData: FormData): ParsedGameForm {
       bring_bases: values.bringBases === "" ? null : values.bringBases === "need",
       game_date: values.gameDate,
       opponent: values.opponent || null,
-      // 予定の試合はスコアと勝敗を持たない
+      // 予定・雨天中止の試合はスコアと勝敗を持たない
       team_score: completed && values.teamScore !== "" ? Number(values.teamScore) : null,
       opponent_score: completed && values.opponentScore !== "" ? Number(values.opponentScore) : null,
       result: completed ? (values.result as GameResult) : null,

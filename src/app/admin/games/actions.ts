@@ -59,7 +59,7 @@ export async function createGame(_prev: GameFormState, formData: FormData): Prom
   updateTag(STATS_TAG);
   // 予定なら試合の画面へ。結果まで入れたら参加者の登録へ
   if (scheduleDay && parsed.record.status === "scheduled") redirect(`/schedule/${scheduleDay.slice(0, 7)}`);
-  redirect(parsed.record.status === "scheduled" ? `/admin/games/${data.id}` : `/admin/games/${data.id}/participants`);
+  redirect(parsed.record.status === "completed" ? `/admin/games/${data.id}/participants` : `/admin/games/${data.id}`);
 }
 
 export async function updateGame(_prev: GameFormState, formData: FormData): Promise<GameFormState> {

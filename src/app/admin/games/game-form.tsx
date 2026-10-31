@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useActionState, useState } from "react";
 import { defaultMeetTime, resultFromScores, UNIFORM_COLORS, type GameFormValues } from "@/lib/games/form";
+import type { GameStatus } from "@/types/database";
 import { ROUND_SUGGESTIONS, STAGE_LABEL } from "@/lib/games/type-label";
 import type { GameFormState } from "./actions";
 
@@ -10,7 +11,7 @@ type Props = {
   action: (prev: GameFormState, formData: FormData) => Promise<GameFormState>;
   initial: GameFormValues;
   gameId?: string;
-  initialStatus?: "scheduled" | "completed"; // 編集前の状態(予定 → 終了にしたら参加者登録へ進む)
+  initialStatus?: GameStatus; // 編集前の状態(予定 → 終了にしたら参加者登録へ進む)
   tournaments: { id: string; season: number; name: string }[];
   cancelHref: string;
   submitLabel: string;
@@ -82,12 +83,13 @@ function GameFormFields({
         </p>
       )}
 
-      <fieldset className="grid grid-cols-2 gap-2">
-        <legend className="sr-only">予定か結果ありか</legend>
+      <fieldset className="grid grid-cols-3 gap-2">
+        <legend className="sr-only">予定か結果ありか雨天中止か</legend>
         {(
           [
             ["scheduled", "予定"],
-            ["completed", "結果あり(終了)"],
+            ["completed", "結果あり"],
+            ["cancelled", "雨天中止"],
           ] as const
         ).map(([value, label]) => (
           <label key={value} className={TOGGLE}>

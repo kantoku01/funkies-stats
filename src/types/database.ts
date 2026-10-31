@@ -8,7 +8,7 @@ export type Json = string | number | boolean | null | { [key: string]: Json | un
 export type PlayerKind = "regular" | "guest" | "manager";
 export type GameResult = "win" | "lose" | "draw";
 export type GameType = "open" | "official";
-export type GameStatus = "scheduled" | "completed";
+export type GameStatus = "scheduled" | "completed" | "cancelled"; // 予定 / 終了 / 雨天中止
 export type GameStage = "league" | "knockout";
 export type PlateAppearanceResult =
   | "single"

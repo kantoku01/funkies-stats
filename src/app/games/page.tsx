@@ -32,7 +32,8 @@ async function GamesView({ searchParams }: { searchParams: PageProps<"/games">["
   const filter = parseGameFilter(params.type);
   const [allGames, tournaments] = season === null ? [[], []] : await Promise.all([getGamesBySeason(season), getSeasonTournaments(season)]);
   const games = allGames.filter((g) => matchesFilter(g, filter));
-  const completed = games.filter((g) => g.status === "completed");
+  // 終わった試合と雨天中止(新しい順)
+  const completed = games.filter((g) => g.status !== "scheduled");
   const typeQuery = (key: string) => (key === "all" ? "" : `&type=${key}`);
 
   return (

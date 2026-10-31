@@ -20,7 +20,7 @@ export default async function GamePage({ params }: PageProps<"/admin/games/[id]"
     { href: `/admin/games/${g.id}/edit`, title: "試合情報", detail: "日付・相手・スコア" },
     { href: `/admin/games/${g.id}/participants`, title: "参加者", detail: `${participants.length}人` },
     { href: `/admin/games/${g.id}/batting`, title: "打撃入力", detail: `${paCount}打席` },
-  ];
+  ].filter((_, i) => g.status !== "cancelled" || i === 0); // 雨天中止は参加者・打撃入力なし
 
   return (
     <section className="space-y-5">
@@ -34,14 +34,20 @@ export default async function GamePage({ params }: PageProps<"/admin/games/[id]"
       </div>
 
       <div className="flex items-center gap-3 rounded-md border border-slate-200 bg-white p-4">
-        <GameResultBadge result={g.result} />
+        <GameResultBadge result={g.result} status={g.status} />
         <div className="flex-1">
           <p className="text-sm text-slate-500">{label}</p>
           <p className="font-bold">{g.opponent ?? "(対戦相手未入力)"}</p>
           <GameTypeLabel game={g} />
         </div>
         <p className="text-2xl font-bold tabular-nums">
-          {g.status === "scheduled" ? <span className="text-base text-brand-700">予定</span> : formatScore(g.team_score, g.opponent_score)}
+          {g.status === "scheduled" ? (
+            <span className="text-base text-brand-700">予定</span>
+          ) : g.status === "cancelled" ? (
+            <span className="text-base text-slate-500">雨天中止</span>
+          ) : (
+            formatScore(g.team_score, g.opponent_score)
+          )}
         </p>
       </div>
       <GameScheduleInfo info={scheduleOf(g)} className="rounded-md border border-slate-200 bg-white p-3" />

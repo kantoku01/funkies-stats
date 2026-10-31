@@ -66,7 +66,7 @@ export async function buildCsv(kind: ExportKind, season: number): Promise<string
       games.map((g) => [
         g.id,
         g.game_date,
-        g.status === "scheduled" ? "予定" : "終了",
+        g.status === "scheduled" ? "予定" : g.status === "cancelled" ? "雨天中止" : "終了",
         g.start_time?.slice(0, 5) ?? "",
         g.meet_time?.slice(0, 5) ?? "",
         g.venue,

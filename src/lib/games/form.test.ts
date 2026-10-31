@@ -163,3 +163,10 @@ describe("集合時間とユニフォーム", () => {
     expect(r.ok || r.errors.uniform).toBe("ユニフォームは青か黒を選んでください。");
   });
 });
+
+describe("雨天中止", () => {
+  test("スコアと勝敗は持たない", () => {
+    const r = parseGameForm(fd({ status: "cancelled", gameDate: "2026-11-15", teamScore: "3", result: "win" }));
+    expect(r.ok && [r.record.status, r.record.result, r.record.team_score].join("/")).toBe("cancelled//");
+  });
+});

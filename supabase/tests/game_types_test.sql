@@ -34,6 +34,10 @@ select pg_temp.expect_error($$insert into public.games (game_date, status, team_
 select pg_temp.expect_error($$insert into public.games (game_date) values ('2026-11-08')$$, '終了した試合に勝敗がない');
 select pg_temp.expect_ok($$update public.games set status = 'completed', result = 'win', team_score = 5, opponent_score = 2 where venue = '河川敷グラウンド'$$, '予定 → 結果を入力して終了');
 select pg_temp.expect_error($$update public.games set status = 'scheduled' where venue = '河川敷グラウンド'$$, '結果のある試合をそのまま予定に戻せない');
+select pg_temp.expect_ok($$insert into public.games (game_date, status, venue) values ('2026-11-15', 'cancelled', '雨のグラウンド')$$, '雨天中止の試合');
+select pg_temp.expect_error($$update public.games set result = 'win' where venue = '雨のグラウンド'$$, '雨天中止の試合に勝敗');
+select pg_temp.expect_error($$insert into public.games (game_date, status) values ('2026-11-15', 'postponed')$$, '状態は3種類');
+delete from public.games where venue = '雨のグラウンド';
 
 set role anon;
 select pg_temp.expect_ok($$select count(*) from public.tournaments$$, '匿名: 大会を閲覧できる');

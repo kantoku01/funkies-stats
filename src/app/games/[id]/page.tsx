@@ -52,7 +52,7 @@ async function GameDetailView({ params }: { params: PageProps<"/games/[id]">["pa
       </div>
 
       <div className="flex items-center gap-3 rounded-md border border-slate-200 bg-white p-4">
-        <GameResultBadge result={g.result} />
+        <GameResultBadge result={g.result} status={g.status} />
         <div className="flex-1">
           <p className="text-sm text-slate-500">
             {g.season}/{formatGameDate(g.gameDate)}
@@ -61,7 +61,13 @@ async function GameDetailView({ params }: { params: PageProps<"/games/[id]">["pa
           <GameTypeLabel game={g.typeInfo} />
         </div>
         <p className="text-2xl font-bold tabular-nums">
-          {g.status === "scheduled" ? <span className="text-base text-brand-700">予定</span> : formatScore(g.teamScore, g.opponentScore)}
+          {g.status === "scheduled" ? (
+            <span className="text-base text-brand-700">予定</span>
+          ) : g.status === "cancelled" ? (
+            <span className="text-base text-slate-500">雨天中止</span>
+          ) : (
+            formatScore(g.teamScore, g.opponentScore)
+          )}
         </p>
       </div>
       <GameScheduleInfo info={g.schedule} className="rounded-md border border-slate-200 bg-white p-3" />
@@ -71,6 +77,8 @@ async function GameDetailView({ params }: { params: PageProps<"/games/[id]">["pa
         <Suspense fallback={null}>
           <GameAttendance day={g.gameDate} />
         </Suspense>
+      ) : g.status === "cancelled" ? (
+        <p className="text-slate-600">雨天中止のため、試合数・出席には数えません。</p>
       ) : g.lines.length === 0 ? (
         <p className="text-slate-600">参加者はまだ登録されていません。</p>
       ) : (

@@ -48,7 +48,11 @@ function gameText(g: ScheduleDay["games"][number], i: number, total: number): st
   return [
     total > 1 ? `第${i + 1}試合` : "試合",
     g.opponent ? `vs ${g.opponent}` : "(相手未定)",
-    g.status === "completed" && g.result ? `${RESULT_LABEL[g.result]}${g.team_score !== null && g.opponent_score !== null ? ` ${g.team_score}-${g.opponent_score}` : ""}` : null,
+    g.status === "completed" && g.result
+      ? `${RESULT_LABEL[g.result]}${g.team_score !== null && g.opponent_score !== null ? ` ${g.team_score}-${g.opponent_score}` : ""}`
+      : g.status === "cancelled"
+        ? "雨天中止"
+        : null,
     formatGameTime(g.start_time),
     g.venue,
     g.game_type === "official" ? gameTypeLabel(g) : null,
@@ -75,7 +79,7 @@ function GameBox({ game: g, index, total }: { game: ScheduleDay["games"][number]
             {total > 1 ? `第${index + 1}試合` : "試合"} {g.opponent ? `vs ${g.opponent}` : "(相手未定)"}
           </span>
           <span className={`shrink-0 text-sm font-bold ${g.status === "completed" && g.result ? RESULT_COLOR[g.result] : "text-slate-400"}`}>
-            {g.status === "completed" && g.result ? `${RESULT_LABEL[g.result]}${score}` : "予定"} ›
+            {g.status === "completed" && g.result ? `${RESULT_LABEL[g.result]}${score}` : g.status === "cancelled" ? "雨天中止" : "予定"} ›
           </span>
         </div>
         {sub && <p className="text-sm text-slate-600">{sub}</p>}
