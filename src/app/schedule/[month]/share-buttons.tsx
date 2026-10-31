@@ -2,11 +2,10 @@
 
 import { useState } from "react";
 
-// LINE で送る / URL をコピー
-export function ShareButtons({ title }: { title: string }) {
+// LINE で送る(今日以降の予定をまとめた文面) / URL をコピー
+export function ShareButtons({ message }: { message: string }) {
   const [copied, setCopied] = useState(false);
-  const url = typeof window === "undefined" ? "" : window.location.href.split("#")[0];
-  const lineHref = `https://line.me/R/msg/text/?${encodeURIComponent(`${title}\n${url}`)}`;
+  const lineHref = `https://line.me/R/msg/text/?${encodeURIComponent(message)}`;
 
   return (
     <div className="grid grid-cols-2 gap-2">

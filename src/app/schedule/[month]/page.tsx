@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { headers } from "next/headers";
 import { notFound } from "next/navigation";
+import { connection } from "next/server";
 import { Suspense } from "react";
 import { EditorOnly } from "@/components/editor-only";
 import { gameTypeLabel } from "@/lib/games/type-label";
@@ -16,6 +18,8 @@ import {
   shiftMonth,
   type Answer,
 } from "@/lib/schedule/month";
+import { buildScheduleMessage } from "@/lib/schedule/share-message";
+import { todayInJapan } from "@/lib/season";
 import { AnswerForm } from "./answer-form";
 import { AddDateForm, DayEditor } from "./day-editor";
 import { EventEditor } from "./event-editor";
@@ -161,6 +165,22 @@ function AnswerNames({
 
 const RESULT_COLOR = { win: "text-red-600", lose: "text-brand-600", draw: "text-slate-500" } as const;
 
+// 「LINEで送る」の文面: 今日以降の予定(今月から3か月分。何も決まっていない月は出さない)
+async function ScheduleShare() {
+  await connection();
+  const today = todayInJapan(new Date());
+  const h = await headers();
+  const siteUrl = `${h.get("x-forwarded-proto") ?? "https"}://${h.get("host")}`;
+  const first = parseMonth(today.slice(0, 7))!;
+  const months = await Promise.all(
+    [0, 1, 2].map(async (i) => {
+      const month = shiftMonth(first, i);
+      return { month, days: (await getScheduleMonth(month)).days };
+    }),
+  );
+  return <ShareButtons message={buildScheduleMessage(siteUrl, today, months)} />;
+}
+
 async function ScheduleView({ params }: { params: PageProps<"/schedule/[month]">["params"] }) {
   const m = parseMonth((await params).month);
   if (!m) notFound();
@@ -203,7 +223,9 @@ async function ScheduleView({ params }: { params: PageProps<"/schedule/[month]">
         </Link>
       </div>
 
-      <ShareButtons title={`【ファンキーズ】${m.month}月の予定・出欠を回答してください`} />
+      <Suspense fallback={<div className="min-h-11" />}>
+        <ScheduleShare />
+      </Suspense>
 
       {/* 日付ごとの予定と集計 */}
       <ul className="space-y-2">
