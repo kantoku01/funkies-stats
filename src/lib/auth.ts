@@ -1,4 +1,5 @@
 import "server-only";
+import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
 
 export type Editor = {
@@ -6,8 +7,9 @@ export type Editor = {
   displayName: string;
 };
 
-// ログイン中の編集者を返す。未ログイン、または editors に登録されていなければ null
-export async function getCurrentEditor(): Promise<Editor | null> {
+// ログイン中の編集者を返す。未ログイン、または editors に登録されていなければ null。
+// 1つの画面で何度呼んでも(日付カードごとの編集ボタンなど)、問い合わせは1回にまとめる
+export const getCurrentEditor = cache(async (): Promise<Editor | null> => {
   const supabase = await createClient();
   const { data: claims } = await supabase.auth.getClaims();
   const userId = claims?.claims?.sub;
@@ -22,7 +24,7 @@ export async function getCurrentEditor(): Promise<Editor | null> {
   if (!editor) return null;
 
   return { userId: editor.user_id, displayName: editor.display_name };
-}
+});
 
 // ログインしているか(編集者でなくても true)
 export async function isLoggedIn(): Promise<boolean> {
