@@ -57,9 +57,9 @@ export type ScheduleMonth = { days: ScheduleDay[]; members: ScheduleMember[] };
 
 // 月の予定と出欠(誰でも閲覧)
 export async function getScheduleMonth(m: Month): Promise<ScheduleMonth> {
-  "use cache";
+  "use cache: remote";
   cacheTag(SCHEDULE_TAG, STATS_TAG);
-  cacheLife("minutes");
+  cacheLife("hours");
 
   const { first, last } = monthRange(m);
   const supabase = createPublicClient();

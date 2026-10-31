@@ -18,9 +18,9 @@ export type LedgerData = {
 
 // チーム経費(誰でも閲覧)
 export async function getLedger(): Promise<LedgerData> {
-  "use cache";
+  "use cache: remote";
   cacheTag(LEDGER_TAG);
-  cacheLife("minutes");
+  cacheLife("hours");
 
   const supabase = createPublicClient();
   const [entries, players, games] = await Promise.all([

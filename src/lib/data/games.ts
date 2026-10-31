@@ -10,9 +10,9 @@ const GAME_COLUMNS =
 
 // 試合一覧(誰でも閲覧)。予定も含む。新しい順
 export async function getGamesBySeason(season: number) {
-  "use cache";
+  "use cache: remote";
   cacheTag(STATS_TAG);
-  cacheLife("minutes");
+  cacheLife("hours");
 
   const supabase = createPublicClient();
   return fetchAll((from, to) =>
@@ -28,9 +28,9 @@ export async function getGamesBySeason(season: number) {
 
 // 試合一覧で選べるシーズン(予定だけのシーズンも含む。新しい順)
 export async function getGameSeasons(): Promise<number[]> {
-  "use cache";
+  "use cache: remote";
   cacheTag(STATS_TAG);
-  cacheLife("minutes");
+  cacheLife("hours");
 
   const supabase = createPublicClient();
   const rows = await fetchAll((from, to) => supabase.from("games").select("season").order("id").range(from, to));
@@ -39,9 +39,9 @@ export async function getGameSeasons(): Promise<number[]> {
 
 // 次の試合: 今日以降でいちばん近い予定(today は日本時間の YYYY-MM-DD)
 export async function getNextGame(today: string) {
-  "use cache";
+  "use cache: remote";
   cacheTag(STATS_TAG);
-  cacheLife("minutes");
+  cacheLife("hours");
 
   const supabase = createPublicClient();
   const { data, error } = await supabase

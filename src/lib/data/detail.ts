@@ -34,9 +34,9 @@ export type GameDetail = {
 
 // 試合詳細(誰でも閲覧)
 export async function getGameDetail(id: string): Promise<GameDetail | null> {
-  "use cache";
+  "use cache: remote";
   cacheTag(STATS_TAG);
-  cacheLife("minutes");
+  cacheLife("hours");
 
   const supabase = createPublicClient();
   const { data: game, error } = await supabase
@@ -140,9 +140,9 @@ export type PlayerPage = {
 
 // 個人成績ページ用(誰でも閲覧)。シーズン累計は getSeasonStats から取る
 export async function getPlayerPage(playerId: string, season: number | null): Promise<PlayerPage | null> {
-  "use cache";
+  "use cache: remote";
   cacheTag(STATS_TAG);
-  cacheLife("minutes");
+  cacheLife("hours");
 
   const supabase = createPublicClient();
   const { data: player, error } = await supabase

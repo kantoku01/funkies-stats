@@ -10,9 +10,9 @@ export const STATS_TAG = "stats";
 
 // 終了した試合または初期値があるシーズン(新しい順)。予定だけのシーズンは成績の対象にしない
 export async function getSeasons(): Promise<number[]> {
-  "use cache";
+  "use cache: remote";
   cacheTag(STATS_TAG);
-  cacheLife("minutes");
+  cacheLife("hours");
 
   const supabase = createPublicClient();
   const [games, baselines] = await Promise.all([
@@ -32,9 +32,9 @@ export type SeasonStatsWithNumbers = SeasonStats & {
 
 // filterKey: all(全試合)/ official / open / t-<大会ID>。全試合以外は移行データ(初期値)を含めない
 export async function getSeasonStats(season: number, filterKey = "all"): Promise<SeasonStatsWithNumbers> {
-  "use cache";
+  "use cache: remote";
   cacheTag(STATS_TAG);
-  cacheLife("minutes");
+  cacheLife("hours");
 
   const supabase = createPublicClient();
   const unwrap = <T,>(r: { data: T | null; error: { message: string } | null }): T => {
@@ -135,9 +135,9 @@ export type TournamentSummary = {
 
 // そのシーズンの大会と、大会ごとの勝敗(大会の登録順)
 export async function getSeasonTournaments(season: number): Promise<TournamentSummary[]> {
-  "use cache";
+  "use cache: remote";
   cacheTag(STATS_TAG);
-  cacheLife("minutes");
+  cacheLife("hours");
 
   const supabase = createPublicClient();
   const [tournaments, games] = await Promise.all([
