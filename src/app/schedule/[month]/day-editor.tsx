@@ -3,32 +3,27 @@
 import { useActionState } from "react";
 import { removeExtraDate, saveScheduleDate, type ScheduleEditState } from "../actions";
 
-// 編集者向け: その日の予定(活動予定 / 休み / 未定)とメモ
+// 編集者向け: その日の予定(活動予定 / 休み / 未定)とメモ。試合の予定にする / 試合を足す
 export function DayEditor({
   day,
   kind,
   note,
   extra,
-  gameCount,
+  hasGame,
 }: {
   day: string;
   kind: string;
   note: string | null;
   extra: boolean;
-  gameCount: number;
+  hasGame: boolean;
 }) {
   const [state, action, pending] = useActionState<ScheduleEditState, FormData>(saveScheduleDate, { message: null });
   const [removeState, removeAction, removing] = useActionState<ScheduleEditState, FormData>(removeExtraDate, { message: null });
+  // 活動予定は相手が決まっていない試合なので、相手が決まったらそのまま試合の予定にできる(メモの時間・場所を引き継ぐ)
+  const toGame = !hasGame && kind === "practice";
   return (
-    <div className="space-y-2 text-sm">
-      {/* 同じ日に何試合でも追加できる(ダブルヘッダーや未確定の試合) */}
-      <a
-        href={`/admin/games/new?date=${day}`}
-        className="flex min-h-10 items-center justify-center rounded-md border border-brand-600 font-bold text-brand-700"
-      >
-        ＋ {gameCount > 0 ? "この日にもう1試合追加" : "この日に試合予定を追加"}
-      </a>
-      <details>
+    <div className="flex items-start gap-2 text-sm">
+      <details className="min-w-0 flex-1">
         <summary className="cursor-pointer text-brand-700">予定を編集</summary>
         <form action={action} className="mt-2 space-y-2">
           <input type="hidden" name="day" value={day} />
@@ -74,6 +69,12 @@ export function DayEditor({
           </form>
         )}
       </details>
+      <a
+        href={toGame ? `/admin/games/new?date=${day}&from=schedule` : `/admin/games/new?date=${day}`}
+        className={`shrink-0 ${toGame ? "rounded-md border border-brand-600 px-2 py-1 font-bold text-brand-700" : "text-brand-700"}`}
+      >
+        {toGame ? "試合の予定にする" : "＋ 試合を追加"}
+      </a>
     </div>
   );
 }

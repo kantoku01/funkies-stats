@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import { connection } from "next/server";
 import { getTournamentsForAdmin } from "@/lib/data/games";
+import { defaultMeetTime } from "@/lib/games/form";
+import { parseActivityNote } from "@/lib/schedule/month";
+import { createClient } from "@/lib/supabase/server";
 import { todayInJapan } from "@/lib/season";
 import { createGame } from "../actions";
 import { GameForm } from "../game-form";
@@ -13,6 +16,14 @@ export default async function NewGamePage({ searchParams }: PageProps<"/admin/ga
   // 今日の日付を既定値にするので、リクエストごとに描画する
   await connection();
   const tournaments = await getTournamentsForAdmin();
+  // 予定・出欠ページの「試合の予定にする」から来たら、活動予定のメモから開始時間と場所を引き継ぐ
+  const fromSchedule = query.from === "schedule" && dateParam !== null;
+  let fromNote: { start: string | null; venue: string | null } = { start: null, venue: null };
+  if (fromSchedule) {
+    const supabase = await createClient();
+    const { data } = await supabase.from("schedule_dates").select("note").eq("day", dateParam).maybeSingle();
+    fromNote = parseActivityNote(data?.note ?? null);
+  }
   return (
     <section className="space-y-4">
       <h1 className="text-xl font-bold">試合を追加</h1>
@@ -21,9 +32,9 @@ export default async function NewGamePage({ searchParams }: PageProps<"/admin/ga
         tournaments={tournaments}
         initial={{
           status: "scheduled",
-          startTime: "",
-          meetTime: "",
-          venue: "",
+          startTime: fromNote.start ?? "",
+          meetTime: fromNote.start ? defaultMeetTime(fromNote.start) : "",
+          venue: fromNote.venue ?? "",
           uniform: "",
           bringBases: "",
           gameDate: dateParam ?? todayInJapan(new Date()),
@@ -38,7 +49,8 @@ export default async function NewGamePage({ searchParams }: PageProps<"/admin/ga
           stage: "",
           roundLabel: "",
         }}
-        cancelHref="/games"
+        cancelHref={fromSchedule ? `/schedule/${dateParam!.slice(0, 7)}` : "/games"}
+        scheduleDay={fromSchedule ? dateParam! : undefined}
         submitLabel="保存する"
       />
     </section>

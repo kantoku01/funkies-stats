@@ -4,9 +4,10 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Suspense } from "react";
 
-// スマホの幅に5つ並ぶよう、ラベルは短くする
+// スマホの幅に6つ並ぶよう、ラベルは短くする
 const TABS = [
   { href: "/", label: "ホーム", match: (p: string) => p === "/" },
+  { href: "/schedule", label: "予定", match: (p: string) => p.startsWith("/schedule") },
   { href: "/stats", label: "成績", match: (p: string) => p.startsWith("/stats") },
   { href: "/games", label: "試合", match: (p: string) => p.startsWith("/games") },
   { href: "/players", label: "選手", match: (p: string) => p.startsWith("/players") },

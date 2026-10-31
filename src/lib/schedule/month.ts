@@ -61,3 +61,20 @@ export function countAnswers(answers: { answer: Answer }[]): Record<Answer, numb
 
 // 参加者登録の初期チェック: ○ と △ は参加扱い
 export const countsAsAttending = (a: Answer | null | undefined) => a === "yes" || a === "maybe";
+
+// 活動予定のメモ「14:00〜16:00 東雲運動広場グラウンド」から、試合予定に移す開始時間と場所を取り出す。
+// rest は残りのメモ(「(年内最終活動日)/19:00〜 忘年会」など)
+export function parseActivityNote(note: string | null): { start: string | null; venue: string | null; rest: string | null } {
+  const text = (note ?? "").trim();
+  const m = /^(\d{1,2}):(\d{2})\s*[〜~～-]\s*(?:\d{1,2}:\d{2})?\s*([^\s(（/]*)/.exec(text);
+  if (!m) return { start: null, venue: null, rest: text || null };
+  const rest = text.slice(m[0].length).trim();
+  return { start: `${m[1].padStart(2, "0")}:${m[2]}`, venue: m[3] || null, rest: rest || null };
+}
+
+// /schedule で開く月: 今月の予定日がもう全部終わっていたら来月
+export function monthToOpen(today: string, daysThisMonth: string[]): Month {
+  const m = parseMonth(today.slice(0, 7))!;
+  const last = daysThisMonth.reduce((a, b) => (a > b ? a : b), "");
+  return last !== "" && today > last ? shiftMonth(m, 1) : m;
+}

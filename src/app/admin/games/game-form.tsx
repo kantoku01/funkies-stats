@@ -14,6 +14,7 @@ type Props = {
   tournaments: { id: string; season: number; name: string }[];
   cancelHref: string;
   submitLabel: string;
+  scheduleDay?: string; // 活動予定から試合の予定にするとき、その日付(保存したらメモの時間・場所を消す)
 };
 
 const inputBase = "block min-h-11 rounded-md border border-slate-300 bg-white px-3 text-base";
@@ -37,6 +38,7 @@ export function GameForm(props: Props) {
 
 function GameFormFields({
   gameId,
+  scheduleDay,
   initialStatus,
   tournaments,
   cancelHref,
@@ -73,6 +75,7 @@ function GameFormFields({
     <form action={formAction} className="space-y-5" noValidate>
       {gameId && <input type="hidden" name="id" value={gameId} />}
       {gameId && <input type="hidden" name="previousStatus" value={initialStatus} />}
+      {scheduleDay && <input type="hidden" name="scheduleDay" value={scheduleDay} />}
       {state.message && (
         <p role="alert" className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-800">
           {state.message}

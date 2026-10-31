@@ -7,6 +7,7 @@ import { getParticipantsForAdmin } from "@/lib/data/games";
 import { STATS_TAG } from "@/lib/data/stats";
 import { parseGameForm, tournamentNameWithYear, type GameFormErrors, type GameFormValues, type TournamentChoice } from "@/lib/games/form";
 import { planParticipants } from "@/lib/games/participants";
+import { parseActivityNote } from "@/lib/schedule/month";
 import { createClient } from "@/lib/supabase/server";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -48,8 +49,16 @@ export async function createGame(_prev: GameFormState, formData: FormData): Prom
     .single();
   if (error || !data) return { values: parsed.values, errors: {}, message: "保存に失敗しました。もう一度お試しください。" };
 
+  // 活動予定から試合の予定にしたら、メモから時間・場所を外す(試合の枠に出るので)。残りのメモ(忘年会など)は残す
+  const scheduleDay = String(formData.get("scheduleDay") ?? "");
+  if (scheduleDay && scheduleDay === parsed.record.game_date) {
+    const { data: date } = await supabase.from("schedule_dates").select("note").eq("day", scheduleDay).maybeSingle();
+    if (date) await supabase.from("schedule_dates").update({ note: parseActivityNote(date.note).rest }).eq("day", scheduleDay);
+  }
+
   updateTag(STATS_TAG);
   // 予定なら試合の画面へ。結果まで入れたら参加者の登録へ
+  if (scheduleDay && parsed.record.status === "scheduled") redirect(`/schedule/${scheduleDay.slice(0, 7)}`);
   redirect(parsed.record.status === "scheduled" ? `/admin/games/${data.id}` : `/admin/games/${data.id}/participants`);
 }
 

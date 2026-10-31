@@ -62,6 +62,36 @@ function eventText(d: ScheduleDay): string {
   return [KIND_LABEL[d.kind], d.note].filter(Boolean).join(" ");
 }
 
+// 試合の予定・結果を枠で囲んで出す
+function GameBox({ game: g, index, total }: { game: ScheduleDay["games"][number]; index: number; total: number }) {
+  const score = g.team_score !== null && g.opponent_score !== null ? ` ${g.team_score}-${g.opponent_score}` : "";
+  const sub = [formatGameTime(g.start_time), g.venue, g.game_type === "official" ? gameTypeLabel(g) : null].filter(Boolean).join(" ");
+  return (
+    <div className="rounded-md border border-accent-200 bg-accent-50">
+      <Link href={`/games/${g.id}`} className="block px-3 py-2">
+        <div className="flex items-baseline justify-between gap-2">
+          <span className="font-bold text-accent-600">
+            {total > 1 ? `第${index + 1}試合` : "試合"} {g.opponent ? `vs ${g.opponent}` : "(相手未定)"}
+          </span>
+          <span className={`shrink-0 text-sm font-bold ${g.status === "completed" && g.result ? RESULT_COLOR[g.result] : "text-slate-400"}`}>
+            {g.status === "completed" && g.result ? `${RESULT_LABEL[g.result]}${score}` : "予定"} ›
+          </span>
+        </div>
+        {sub && <p className="text-sm text-slate-600">{sub}</p>}
+      </Link>
+      <EditorOnly>
+        <div className="border-t border-accent-200 px-3 py-1 text-right">
+          <Link href={`/admin/games/${g.id}/edit`} className="text-sm text-brand-700">
+            {g.opponent ? "試合を編集" : "相手・内容を入れる"} ›
+          </Link>
+        </div>
+      </EditorOnly>
+    </div>
+  );
+}
+
+const RESULT_COLOR = { win: "text-red-600", lose: "text-brand-600", draw: "text-slate-500" } as const;
+
 async function ScheduleView({ params }: { params: PageProps<"/schedule/[month]">["params"] }) {
   const m = parseMonth((await params).month);
   if (!m) notFound();
@@ -106,7 +136,7 @@ async function ScheduleView({ params }: { params: PageProps<"/schedule/[month]">
           const yesPlayers = answered.filter((mem) => mem.kind === "regular" && d.answers[mem.id].answer === "yes").length;
           const yesManagers = counts.yes - yesPlayers;
           return (
-            <li key={d.day} className={`rounded-lg border bg-white p-3 ${hasGame ? "border-accent-500" : "border-slate-200"}`}>
+            <li key={d.day} className="rounded-lg border border-slate-200 bg-white p-3">
               <div className="flex items-baseline justify-between gap-2">
                 <span className="text-lg font-bold tabular-nums">{formatGameDate(d.day)}</span>
                 {!closed && (
@@ -124,11 +154,12 @@ async function ScheduleView({ params }: { params: PageProps<"/schedule/[month]">
                 </p>
               )}
               {hasGame ? (
-                d.games.map((g, i) => (
-                  <Link key={g.id} href={`/games/${g.id}`} className="block text-sm font-medium text-accent-600">
-                    {gameText(g, i, d.games.length)} ›
-                  </Link>
-                ))
+                <div className="mt-2 space-y-2">
+                  {d.games.map((g, i) => (
+                    <GameBox key={g.id} game={g} index={i} total={d.games.length} />
+                  ))}
+                  {d.note && <p className="text-sm text-slate-600">{d.note}</p>}
+                </div>
               ) : (
                 <p className={`text-sm ${d.kind === "off" ? "text-slate-400" : "text-slate-700"}`}>{eventText(d)}</p>
               )}
@@ -153,7 +184,7 @@ async function ScheduleView({ params }: { params: PageProps<"/schedule/[month]">
               )}
               <EditorOnly>
                 <div className="mt-2 border-t border-slate-100 pt-2">
-                  <DayEditor day={d.day} kind={d.kind} note={d.note} extra={d.extra} gameCount={d.games.length} />
+                  <DayEditor day={d.day} kind={d.kind} note={d.note} extra={d.extra} hasGame={hasGame} />
                 </div>
               </EditorOnly>
             </li>
