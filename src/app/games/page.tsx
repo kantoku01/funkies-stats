@@ -32,8 +32,6 @@ async function GamesView({ searchParams }: { searchParams: PageProps<"/games">["
   const filter = parseGameFilter(params.type);
   const [allGames, tournaments] = season === null ? [[], []] : await Promise.all([getGamesBySeason(season), getSeasonTournaments(season)]);
   const games = allGames.filter((g) => matchesFilter(g, filter));
-  // 予定は日付の近い順、結果は新しい順
-  const scheduled = games.filter((g) => g.status === "scheduled").reverse();
   const completed = games.filter((g) => g.status === "completed");
   const typeQuery = (key: string) => (key === "all" ? "" : `&type=${key}`);
 
@@ -52,16 +50,8 @@ async function GamesView({ searchParams }: { searchParams: PageProps<"/games">["
       {season !== null && (
         <GameFilterTabs current={filter.key} tournaments={tournaments} href={(k) => `/games?season=${season}${typeQuery(k)}`} />
       )}
-      {scheduled.length > 0 && (
-        <div className="space-y-1">
-          <h2 className="text-sm font-bold text-slate-600">今後の予定</h2>
-          <GameList games={scheduled} />
-        </div>
-      )}
-      <div className="space-y-1">
-        {scheduled.length > 0 && <h2 className="text-sm font-bold text-slate-600">試合結果</h2>}
-        <GameList games={completed} />
-      </div>
+      {/* 今後の予定は「予定」タブで見るので、ここは終わった試合だけ */}
+      <GameList games={completed} />
 
       {/* 大会ごとの勝敗 */}
       {tournaments.length > 0 && (
