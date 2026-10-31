@@ -73,6 +73,11 @@ async function GameDetailView({ params }: { params: PageProps<"/games/[id]">["pa
           )}
         </p>
       </div>
+      {g.status !== "cancelled" && (
+        <EditorOnly>
+          <ResultEntryLink gameId={g.id} status={g.status} />
+        </EditorOnly>
+      )}
       <GameScheduleInfo info={g.schedule} className="rounded-md border border-slate-200 bg-white p-3" />
       {g.memo && <p className="whitespace-pre-wrap text-sm text-slate-600">{g.memo}</p>}
 
@@ -158,6 +163,25 @@ async function EditLink({ gameId }: { gameId: string }) {
   return (
     <Link href={`/admin/games/${gameId}`} className="flex min-h-11 items-center rounded-md border border-slate-300 bg-white px-3 text-sm">
       編集
+    </Link>
+  );
+}
+
+// 編集者向け: 試合が終わったら結果 → 参加者(○△の人が最初からチェック済み)→ 打撃入力へ。終わった試合は打撃入力へ
+function ResultEntryLink({ gameId, status }: { gameId: string; status: GameDetail["status"] }) {
+  return status === "scheduled" ? (
+    <Link
+      href={`/admin/games/${gameId}/edit?result=1`}
+      className="flex min-h-12 items-center justify-center rounded-md bg-accent-500 text-lg font-bold text-white"
+    >
+      試合が終わったら:結果・成績を入力
+    </Link>
+  ) : (
+    <Link
+      href={`/admin/games/${gameId}/batting`}
+      className="flex min-h-11 items-center justify-center rounded-md border border-accent-500 font-bold text-accent-600"
+    >
+      打撃成績を入力・修正する
     </Link>
   );
 }
