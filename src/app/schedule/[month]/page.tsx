@@ -121,6 +121,7 @@ function EventBox({ day, event: e, active }: { day: string; event: ScheduleEvent
         </span>
       </div>
       {detail && <p className="text-sm text-slate-700">{detail}</p>}
+      {e.note && <p className="whitespace-pre-wrap break-all text-sm text-slate-700">{e.note}</p>}
       {answered.length > 0 && (
         <details className="mt-1 text-sm">
           <summary className="cursor-pointer text-slate-500">回答した人を見る</summary>
@@ -131,7 +132,7 @@ function EventBox({ day, event: e, active }: { day: string; event: ScheduleEvent
         <div className="mt-1 border-t border-amber-200 pt-1">
           <EventEditor
             day={day}
-            event={{ id: e.id, title: e.title, startTime: e.start_time?.slice(0, 5) ?? "", place: e.place ?? "" }}
+            event={{ id: e.id, title: e.title, startTime: e.start_time?.slice(0, 5) ?? "", place: e.place ?? "", note: e.note ?? "" }}
           />
         </div>
       </EditorOnly>

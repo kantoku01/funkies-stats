@@ -50,6 +50,7 @@ export type ScheduleEvent = {
   title: string;
   start_time: string | null;
   place: string | null;
+  note: string | null; // 備考(会費・持ち物など)
   answers: Record<string, { answer: Answer; comment: string | null }>;
 };
 
@@ -105,7 +106,7 @@ export async function getScheduleMonth(m: Month): Promise<ScheduleMonth> {
     fetchAll((from, to) =>
       supabase
         .from("schedule_events")
-        .select("id, day, title, start_time, place")
+        .select("id, day, title, start_time, place, note")
         .gte("day", first)
         .lte("day", last)
         .order("day")
@@ -168,6 +169,7 @@ export async function getScheduleMonth(m: Month): Promise<ScheduleMonth> {
           title: e.title,
           start_time: e.start_time,
           place: e.place,
+          note: e.note,
           answers: Object.fromEntries(
             eventAnswers.filter((a) => a.event_id === e.id).map((a) => [a.player_id, { answer: a.answer, comment: a.comment }]),
           ),

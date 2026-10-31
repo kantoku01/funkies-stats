@@ -96,11 +96,13 @@ export async function saveScheduleEvent(_prev: ScheduleEditState, formData: Form
   const title = String(formData.get("title") ?? "").trim();
   const startTime = String(formData.get("startTime") ?? "").trim();
   const place = String(formData.get("place") ?? "").trim();
+  const note = String(formData.get("note") ?? "").trim();
   if (!DATE.test(day) || (id && !UUID.test(id))) return { message: "入力内容が正しくありません。" };
   if (!title || title.length > 30) return { message: "名前を30文字以内で入れてください(例: 忘年会)。" };
   if (startTime && !/^\d{2}:\d{2}$/.test(startTime)) return { message: "時間は 19:00 のように入れてください。" };
   if (place.length > 60) return { message: "場所は60文字以内で入れてください。" };
-  const record = { day, title, start_time: startTime || null, place: place || null };
+  if (note.length > 200) return { message: "備考は200文字以内で入れてください。" };
+  const record = { day, title, start_time: startTime || null, place: place || null, note: note || null };
   const supabase = await createClient();
   const { error } = id
     ? await supabase.from("schedule_events").update(record).eq("id", id)

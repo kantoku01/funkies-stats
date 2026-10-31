@@ -278,8 +278,16 @@ export type Database = {
         Relationships: [];
       };
       schedule_events: {
-        Row: { id: string; day: string; title: string; start_time: string | null; place: string | null; created_at: string };
-        Insert: { id?: string; day: string; title: string; start_time?: string | null; place?: string | null; created_at?: string };
+        Row: { id: string; day: string; title: string; start_time: string | null; place: string | null; note: string | null; created_at: string };
+        Insert: {
+          id?: string;
+          day: string;
+          title: string;
+          start_time?: string | null;
+          place?: string | null;
+          note?: string | null;
+          created_at?: string;
+        };
         Update: Partial<Database["public"]["Tables"]["schedule_events"]["Insert"]>;
         Relationships: [];
       };

@@ -3,12 +3,12 @@
 import { useActionState } from "react";
 import { removeScheduleEvent, saveScheduleEvent, type ScheduleEditState } from "../actions";
 
-type EventValues = { id?: string; title: string; startTime: string; place: string };
+type EventValues = { id?: string; title: string; startTime: string; place: string; note: string };
 
 // 編集者向け: 別の予定(忘年会など)を足す・直す。id があれば直す
 export function EventForm({ day, initial, submitLabel }: { day: string; initial?: EventValues; submitLabel: string }) {
   const [state, action, pending] = useActionState<ScheduleEditState, FormData>(saveScheduleEvent, { message: null });
-  const v = initial ?? { title: "", startTime: "", place: "" };
+  const v = initial ?? { title: "", startTime: "", place: "", note: "" };
   return (
     <form action={action} className="space-y-2 text-sm">
       <input type="hidden" name="day" value={day} />
@@ -18,6 +18,14 @@ export function EventForm({ day, initial, submitLabel }: { day: string; initial?
         <input name="startTime" defaultValue={v.startTime} type="time" className="block min-h-10 rounded-md border border-slate-300 px-2" />
       </div>
       <input name="place" defaultValue={v.place} maxLength={60} placeholder="場所(例: といとい スカイカップコース)" className="block min-h-10 w-full rounded-md border border-slate-300 px-3" />
+      <textarea
+        name="note"
+        defaultValue={v.note}
+        maxLength={200}
+        rows={2}
+        placeholder="備考(例: 会費5,000円、地図の URL など)"
+        className="block w-full rounded-md border border-slate-300 px-3 py-2"
+      />
       <button type="submit" disabled={pending} className="min-h-10 w-full rounded-md border border-brand-600 font-bold text-brand-700 disabled:opacity-60">
         {pending ? "保存中…" : submitLabel}
       </button>

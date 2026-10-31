@@ -48,7 +48,7 @@ describe("buildScheduleMessage", () => {
             day: "2026-12-20",
             kind: "practice",
             note: "9:00〜11:00 大阪城(年内最終活動日)",
-            events: [{ id: "e", title: "忘年会🍺", start_time: "19:00:00", place: "といとい スカイカップコース", answers: {} }],
+            events: [{ id: "e", title: "忘年会🍺", start_time: "19:00:00", place: "といとい スカイカップコース", note: "会費5,000円", answers: {} }],
           }),
         ],
       },
@@ -63,7 +63,7 @@ describe("buildScheduleMessage", () => {
         "・11/15\n14:00〜16:00 東雲運動広場グラウンド",
         "・11/22\nオフ",
         "《12月》\nhttps://example.com/schedule/2026-12",
-        "・12/20\n9:00〜11:00 大阪城(年内最終活動日)\n\n19:00 忘年会🍺\nといとい スカイカップコース",
+        "・12/20\n9:00〜11:00 大阪城(年内最終活動日)\n\n19:00 忘年会🍺\nといとい スカイカップコース\n会費5,000円",
       ].join("\n\n"),
     );
   });

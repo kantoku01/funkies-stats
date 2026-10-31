@@ -27,7 +27,11 @@ function dayLines(d: ScheduleDay): string[] | null {
     blocks.push([d.note]);
   }
   for (const e of d.events) {
-    blocks.push([[e.start_time ? formatTime(e.start_time) : null, e.title].filter(Boolean).join(" "), ...(e.place ? [e.place] : [])]);
+    blocks.push([
+      [e.start_time ? formatTime(e.start_time) : null, e.title].filter(Boolean).join(" "),
+      ...(e.place ? [e.place] : []),
+      ...(e.note ? [e.note] : []),
+    ]);
   }
   return blocks.length > 0 ? blocks.map((b) => b.join("\n")).flatMap((b, i) => (i === 0 ? [b] : ["", b])) : null;
 }
