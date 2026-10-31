@@ -91,7 +91,7 @@ describe("parseGameForm", () => {
         startTime: "９:00",
         meetTime: "8時30分",
         venue: "河川敷　グラウンド",
-        uniform: "白",
+        uniform: "黒",
         bringBases: "need",
         teamScore: "3",
         result: "win",
@@ -102,7 +102,7 @@ describe("parseGameForm", () => {
       start_time: "09:00",
       meet_time: "08:30",
       venue: "河川敷 グラウンド",
-      uniform: "白",
+      uniform: "黒",
       bring_bases: true,
       team_score: null,
       result: null,
@@ -157,9 +157,9 @@ describe("集合時間とユニフォーム", () => {
     const r = parseGameForm(fd({ status: "scheduled", gameDate: "2026-11-01", startTime: "13:00", meetTime: "12:00" }));
     expect(r.ok && r.record.meet_time).toBe("12:00");
   });
-  test("ユニフォームは青か白", () => {
+  test("ユニフォームは青か黒", () => {
     expect(parseGameForm(fd({ status: "scheduled", gameDate: "2026-11-01", uniform: "青" })).ok).toBe(true);
     const r = parseGameForm(fd({ status: "scheduled", gameDate: "2026-11-01", uniform: "赤" }));
-    expect(r.ok || r.errors.uniform).toBe("ユニフォームは青か白を選んでください。");
+    expect(r.ok || r.errors.uniform).toBe("ユニフォームは青か黒を選んでください。");
   });
 });

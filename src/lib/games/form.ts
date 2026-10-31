@@ -87,8 +87,8 @@ export function defaultMeetTime(start: string): string {
   return `${String(Math.floor(t / 60)).padStart(2, "0")}:${String(t % 60).padStart(2, "0")}`;
 }
 
-// ユニフォームは青か白(未定なら空)
-export const UNIFORM_COLORS = ["青", "白"] as const;
+// ユニフォームは青か黒(未定なら空)
+export const UNIFORM_COLORS = ["青", "黒"] as const;
 
 // 試合はすべて2時間。開始時間から「13:00〜15:00」を作る
 export const GAME_HOURS = 2;
@@ -158,7 +158,7 @@ export function parseGameForm(formData: FormData): ParsedGameForm {
     if (values[key] !== "" && !isValidTime(values[key])) errors[key] = "時刻は 9:00 のように入力してください。";
   }
   if (values.venue.length > 60) errors.venue = "場所は60文字以内で入力してください。";
-  if (values.uniform !== "" && !(UNIFORM_COLORS as readonly string[]).includes(values.uniform)) errors.uniform = "ユニフォームは青か白を選んでください。";
+  if (values.uniform !== "" && !(UNIFORM_COLORS as readonly string[]).includes(values.uniform)) errors.uniform = "ユニフォームは青か黒を選んでください。";
 
   if (values.memo.length > 200) errors.memo = "メモは200文字以内で入力してください。";
 
