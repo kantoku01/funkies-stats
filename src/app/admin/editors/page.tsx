@@ -26,13 +26,38 @@ export default async function EditorsPage() {
   );
 }
 
+// 一覧の読み込み。キーが違うなどで失敗したら、画面ごと落とさずに理由を返す
+async function loadEditors() {
+  try {
+    const admin = createAdminClient();
+    const [editors, users] = await Promise.all([
+      admin.from("editors").select("user_id, display_name").order("display_name"),
+      admin.auth.admin.listUsers({ perPage: 200 }),
+    ]);
+    const error = editors.error?.message ?? users.error?.message;
+    if (error) return { error };
+    return { editors: editors.data, users: users.data.users };
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : String(e) };
+  }
+}
+
 async function EditorList({ myUserId }: { myUserId: string | null }) {
-  const admin = createAdminClient();
-  const [{ data: editors }, { data: users }] = await Promise.all([
-    admin.from("editors").select("user_id, display_name").order("display_name"),
-    admin.auth.admin.listUsers({ perPage: 200 }),
-  ]);
-  const userOf = new Map((users?.users ?? []).map((u) => [u.id, u]));
+  const loaded = await loadEditors();
+  if ("error" in loaded) {
+    return (
+      <div className="space-y-1 rounded-md bg-red-50 p-3 text-sm text-red-800">
+        <p className="font-bold">Supabase の Secret key でつながりませんでした。</p>
+        <p>
+          Vercel の SUPABASE_SECRET_KEY が、Supabase の Project Settings &gt; API Keys の Secret key(sb_secret_ で始まるもの)と同じか確かめて、
+          登録し直してから Redeploy してください。
+        </p>
+        <p className="break-all text-xs text-red-700">詳しい理由: {loaded.error}</p>
+      </div>
+    );
+  }
+  const { editors, users } = loaded;
+  const userOf = new Map(users.map((u) => [u.id, u]));
 
   return (
     <>
