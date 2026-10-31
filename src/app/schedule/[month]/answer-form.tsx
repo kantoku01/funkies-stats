@@ -91,10 +91,11 @@ export function AnswerForm({ members, days, current }: Props) {
               const v = draft[d.day] ?? { answer: null, comment: "" };
               return (
                 <li key={d.day} className="space-y-1.5 py-2">
-                  <div className="flex items-baseline justify-between gap-2">
-                    <span className="font-bold tabular-nums">{d.label}</span>
-                    <span className="truncate text-xs text-slate-500">{d.event}</span>
-                  </div>
+                  {/* 予定の内容も日付と同じ字体で、日付の下の行に */}
+                  <p className="font-bold">
+                    <span className="block tabular-nums">{d.label}</span>
+                    {d.event && <span className="block">{d.event}</span>}
+                  </p>
                   <div className="grid grid-cols-3 gap-1.5">
                     {(["yes", "maybe", "no"] as const).map((a) => (
                       <label
