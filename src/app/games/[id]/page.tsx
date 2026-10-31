@@ -2,16 +2,19 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
+import { EditorOnly } from "@/components/editor-only";
 import { formatScore, GameResultBadge } from "@/components/game-result-badge";
 import { GameScheduleInfo } from "@/components/game-schedule-info";
 import { GameTypeLabel } from "@/components/game-type-label";
 import { PaChip } from "@/components/pa-chips";
 import { getCurrentEditor } from "@/lib/auth";
 import { battingSummary } from "@/lib/batting/entry";
-import { getGameDetail } from "@/lib/data/detail";
+import { getGameDetail, type GameDetail } from "@/lib/data/detail";
 import { getScheduleMonth } from "@/lib/data/schedule";
-import { ANSWER_MARK, parseMonth } from "@/lib/schedule/month";
 import { formatGameDate } from "@/lib/format";
+import { buildLineMessage, shortNames } from "@/lib/games/line-message";
+import { ANSWER_MARK, countsAsAttending, parseMonth } from "@/lib/schedule/month";
+import { LineMessageForm } from "./line-message-form";
 
 export const metadata: Metadata = { title: "試合詳細" };
 
@@ -75,7 +78,7 @@ async function GameDetailView({ params }: { params: PageProps<"/games/[id]">["pa
 
       {g.status === "scheduled" ? (
         <Suspense fallback={null}>
-          <GameAttendance day={g.gameDate} />
+          <GameAttendance game={g} />
         </Suspense>
       ) : g.status === "cancelled" ? (
         <p className="text-slate-600">雨天中止のため、試合数・出席には数えません。</p>
@@ -160,7 +163,8 @@ async function EditLink({ gameId }: { gameId: string }) {
 }
 
 // 予定の試合: その日の出欠(○△×と未回答)を参加者一覧として出す
-async function GameAttendance({ day }: { day: string }) {
+async function GameAttendance({ game: g }: { game: GameDetail }) {
+  const day = g.gameDate;
   const { days, members } = await getScheduleMonth(parseMonth(day.slice(0, 7))!);
   const d = days.find((x) => x.day === day);
   const active = members.filter((m) => m.joinedOn <= day && (m.leftOn === null || m.leftOn >= day));
@@ -170,41 +174,66 @@ async function GameAttendance({ day }: { day: string }) {
   const yes = groups[0].who;
   const yesPlayers = yes.filter((m) => m.kind === "regular").length;
 
+  // 試合前日の LINE の文面(○と△の人。名前は名字だけ、同じ名字はチーム全員で見分ける)
+  const message = buildLineMessage(
+    {
+      ...g.typeInfo,
+      game_date: day,
+      opponent: g.opponent,
+      start_time: g.schedule.startTime,
+      meet_time: g.schedule.meetTime,
+      venue: g.schedule.venue,
+      uniform: g.schedule.uniform,
+      bring_bases: g.schedule.bringBases,
+      memo: g.memo,
+    },
+    active
+      .filter((m) => countsAsAttending(answerOf(m.id)?.answer))
+      .map((m) => ({ id: m.id, fullName: m.name, kind: m.kind, carpool: m.carpool })),
+    shortNames(members.map((m) => ({ id: m.id, fullName: m.name }))),
+  );
+
   return (
-    <div className="space-y-2 rounded-md border border-slate-200 bg-white p-3">
-      <div className="flex items-baseline justify-between gap-2">
-        <h2 className="font-bold">参加者(出欠)</h2>
-        <Link href={`/schedule/${day.slice(0, 7)}`} className="text-sm text-brand-700">
-          出欠を回答する ›
-        </Link>
-      </div>
-      <p className="text-sm">
-        <span className="font-bold text-red-600">○ 参加 {yes.length}人</span>
-        <span className="text-slate-500">
-          (選手{yesPlayers}人・マネージャー{yes.length - yesPlayers}人)
-        </span>
-      </p>
-      <ul className="space-y-1.5 text-sm">
-        {groups.map(({ a, who }) => (
-          <li key={a} className="flex gap-2">
-            <span className={`w-5 shrink-0 font-bold ${a === "yes" ? "text-red-600" : a === "maybe" ? "text-amber-600" : "text-slate-500"}`}>
-              {ANSWER_MARK[a]}
-            </span>
-            <span className={who.length === 0 ? "text-slate-400" : ""}>
-              {who.length === 0
-                ? "なし"
-                : who.map((m) => {
-                    const c = answerOf(m.id)?.comment;
-                    return c ? `${m.name}(${c})` : m.name;
-                  }).join("、")}
-            </span>
+    <>
+      <div className="space-y-2 rounded-md border border-slate-200 bg-white p-3">
+        <div className="flex items-baseline justify-between gap-2">
+          <h2 className="font-bold">参加者(出欠)</h2>
+          <Link href={`/schedule/${day.slice(0, 7)}`} className="text-sm text-brand-700">
+            出欠を回答する ›
+          </Link>
+        </div>
+        <p className="text-sm">
+          <span className="font-bold text-red-600">○ 参加 {yes.length}人</span>
+          <span className="text-slate-500">
+            (選手{yesPlayers}人・マネージャー{yes.length - yesPlayers}人)
+          </span>
+        </p>
+        <ul className="space-y-1.5 text-sm">
+          {groups.map(({ a, who }) => (
+            <li key={a} className="flex gap-2">
+              <span className={`w-5 shrink-0 font-bold ${a === "yes" ? "text-red-600" : a === "maybe" ? "text-amber-600" : "text-slate-500"}`}>
+                {ANSWER_MARK[a]}
+              </span>
+              <span className={who.length === 0 ? "text-slate-400" : ""}>
+                {who.length === 0
+                  ? "なし"
+                  : who.map((m) => {
+                      const c = answerOf(m.id)?.comment;
+                      return c ? `${m.name}(${c})` : m.name;
+                    }).join("、")}
+              </span>
+            </li>
+          ))}
+          <li className="flex gap-2 text-slate-500">
+            <span className="w-5 shrink-0 text-xs leading-5">未</span>
+            <span>{unanswered.length === 0 ? "なし" : unanswered.map((m) => m.name).join("、")}</span>
           </li>
-        ))}
-        <li className="flex gap-2 text-slate-500">
-          <span className="w-5 shrink-0 text-xs leading-5">未</span>
-          <span>{unanswered.length === 0 ? "なし" : unanswered.map((m) => m.name).join("、")}</span>
-        </li>
-      </ul>
-    </div>
+        </ul>
+      </div>
+      <EditorOnly>
+        {/* 出欠が変わったら文面も作り直す */}
+        <LineMessageForm key={message} initial={message} />
+      </EditorOnly>
+    </>
   );
 }

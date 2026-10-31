@@ -42,6 +42,7 @@ export default async function EditPlayerPage({ params, searchParams }: PageProps
           joinedOn: player.joined_on ?? "",
           leftOn: player.left_on ?? "",
           number: own?.number ?? "",
+          carpoolGroup: player.carpool_group ?? "",
         }}
         inheritedNote={inheritedNote}
         submitLabel="保存する"

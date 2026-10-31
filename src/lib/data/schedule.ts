@@ -4,14 +4,22 @@ import { monthRange, scheduleDays, type Answer, type Month } from "@/lib/schedul
 import { resolveNumber } from "@/lib/stats";
 import { createPublicClient } from "@/lib/supabase/public";
 import { createClient } from "@/lib/supabase/server";
-import type { GameResult, GameStatus } from "@/types/database";
+import type { CarpoolGroup, GameResult, GameStatus } from "@/types/database";
 import { fetchAll } from "./fetch-all";
 import { STATS_TAG } from "./stats";
 
 // 予定・出欠のキャッシュタグ。回答や予定を書き換えたら updateTag(SCHEDULE_TAG) を呼ぶ
 export const SCHEDULE_TAG = "schedule";
 
-export type ScheduleMember = { id: string; name: string; number: string; kind: "regular" | "manager"; joinedOn: string; leftOn: string | null };
+export type ScheduleMember = {
+  id: string;
+  name: string;
+  number: string;
+  kind: "regular" | "manager";
+  joinedOn: string;
+  leftOn: string | null;
+  carpool: CarpoolGroup | null; // 配車の属性(試合前日の LINE で使う)
+};
 
 export type ScheduleDay = {
   day: string;
@@ -85,7 +93,7 @@ export async function getScheduleMonth(m: Month): Promise<ScheduleMonth> {
     fetchAll((from, to) =>
       supabase
         .from("players")
-        .select("id, full_name, kind, joined_on, left_on")
+        .select("id, full_name, kind, joined_on, left_on, carpool_group")
         .in("kind", ["regular", "manager"])
         .lte("joined_on", last)
         .order("id")
@@ -127,6 +135,7 @@ export async function getScheduleMonth(m: Month): Promise<ScheduleMonth> {
       kind: p.kind as "regular" | "manager",
       joinedOn: p.joined_on!,
       leftOn: p.left_on,
+      carpool: p.carpool_group,
     }))
     .sort(
       (a, b) =>

@@ -1,4 +1,4 @@
-import type { PlayerKind } from "@/types/database";
+import type { CarpoolGroup, PlayerKind } from "@/types/database";
 
 // 選手フォームの入力値(画面に戻すときもこの形)
 export type PlayerFormValues = {
@@ -7,6 +7,7 @@ export type PlayerFormValues = {
   joinedOn: string;
   leftOn: string;
   number: string;
+  carpoolGroup: CarpoolGroup | ""; // 配車(未設定は空)
 };
 
 export type PlayerFormErrors = Partial<Record<keyof PlayerFormValues, string>>;
@@ -34,6 +35,7 @@ export function parsePlayerForm(formData: FormData): ParsedPlayerForm {
     joinedOn: str(formData, "joinedOn"),
     leftOn: str(formData, "leftOn"),
     number: str(formData, "number").replace(/[０-９]/g, (c) => String.fromCharCode(c.charCodeAt(0) - 0xfee0)),
+    carpoolGroup: (["A", "B", "individual"] as const).find((g) => g === str(formData, "carpoolGroup")) ?? "",
   };
   const errors: PlayerFormErrors = {};
 
@@ -56,6 +58,7 @@ export function parsePlayerForm(formData: FormData): ParsedPlayerForm {
       errors.leftOn = "退団日は加入日より後にしてください。";
   }
 
+  if (values.kind !== "regular") values.carpoolGroup = ""; // 配車は選手だけ
   if (values.kind === "guest") values.number = ""; // 助っ人は背番号なし(「助」と表示)
   else if (values.number && !/^[0-9]{1,3}$/.test(values.number))
     errors.number = "背番号は0〜3桁の数字で入力してください。";

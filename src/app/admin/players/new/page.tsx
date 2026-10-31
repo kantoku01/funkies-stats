@@ -19,7 +19,7 @@ export default async function NewPlayerPage({ searchParams }: PageProps<"/admin/
       <PlayerForm
         action={createPlayer}
         season={season}
-        initial={{ fullName: "", kind: "regular", joinedOn: todayInJapan(now), leftOn: "", number: "" }}
+        initial={{ fullName: "", kind: "regular", joinedOn: todayInJapan(now), leftOn: "", number: "", carpoolGroup: "" }}
         inheritedNote={null}
         submitLabel="登録する"
       />

@@ -6,6 +6,7 @@ import type { LedgerCategory } from "@/lib/ledger/categories";
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
 export type PlayerKind = "regular" | "guest" | "manager";
+export type CarpoolGroup = "A" | "B" | "individual"; // 配車グループA / 配車グループB / 個別
 export type GameResult = "win" | "lose" | "draw";
 export type GameType = "open" | "official";
 export type GameStatus = "scheduled" | "completed" | "cancelled"; // 予定 / 終了 / 雨天中止
@@ -47,6 +48,7 @@ export type Database = {
           kind: PlayerKind;
           joined_on: string | null;
           left_on: string | null;
+          carpool_group: CarpoolGroup | null;
           created_at: string;
         };
         Insert: {
@@ -55,6 +57,7 @@ export type Database = {
           kind: PlayerKind;
           joined_on?: string | null;
           left_on?: string | null;
+          carpool_group?: CarpoolGroup | null;
           created_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["players"]["Insert"]>;

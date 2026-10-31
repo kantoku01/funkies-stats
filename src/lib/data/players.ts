@@ -21,7 +21,7 @@ export async function getPlayerForAdmin(id: string) {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("players")
-    .select("id, full_name, kind, joined_on, left_on")
+    .select("id, full_name, kind, joined_on, left_on, carpool_group")
     .eq("id", id)
     .maybeSingle();
   if (error) throw new Error(error.message);

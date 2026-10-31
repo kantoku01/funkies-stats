@@ -20,6 +20,7 @@ const inputClass = `${inputBase} w-full`;
 export function PlayerForm({ action, initial, playerId, season, inheritedNote, submitLabel }: Props) {
   const [state, formAction, pending] = useActionState(action, { values: initial, errors: {}, message: null });
   const [kind, setKind] = useState(initial.kind);
+  const [carpool, setCarpool] = useState(initial.carpoolGroup);
   const v = state.values;
 
   return (
@@ -82,6 +83,39 @@ export function PlayerForm({ action, initial, playerId, season, inheritedNote, s
             className={`${inputBase} w-24`}
           />
         </Field>
+      )}
+
+      {kind === "regular" && (
+        <fieldset className="space-y-1">
+          <legend className="text-sm font-medium">配車</legend>
+          <div className="grid grid-cols-3 gap-2">
+            {(
+              [
+                ["A", "グループA"],
+                ["B", "グループB"],
+                ["individual", "個別"],
+              ] as const
+            ).map(([value, label]) => (
+              <label
+                key={value}
+                className="flex min-h-11 items-center justify-center whitespace-nowrap rounded-md border border-slate-300 bg-white px-1 text-sm has-[:checked]:border-brand-600 has-[:checked]:bg-brand-600 has-[:checked]:font-bold has-[:checked]:text-white"
+              >
+                <input
+                  type="radio"
+                  name="carpoolGroup"
+                  value={value}
+                  checked={carpool === value}
+                  onChange={() => setCarpool(value)}
+                  // もう一度押すと未設定に戻す
+                  onClick={() => carpool === value && setCarpool("")}
+                  className="sr-only"
+                />
+                {label}
+              </label>
+            ))}
+          </div>
+          <p className="text-xs text-slate-500">試合前日の LINE の配車の欄で使います。未設定の人は「個別」に入ります。</p>
+        </fieldset>
       )}
 
       <Field

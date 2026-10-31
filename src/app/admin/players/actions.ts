@@ -71,7 +71,13 @@ export async function createPlayer(_prev: PlayerFormState, formData: FormData): 
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("players")
-    .insert({ full_name: v.fullName, kind: v.kind, joined_on: v.joinedOn || null, left_on: v.leftOn || null })
+    .insert({
+      full_name: v.fullName,
+      kind: v.kind,
+      joined_on: v.joinedOn || null,
+      left_on: v.leftOn || null,
+      carpool_group: v.carpoolGroup || null,
+    })
     .select("id")
     .single();
   if (error || !data) return { values: v, errors: {}, message: "登録に失敗しました。もう一度お試しください。" };
@@ -100,7 +106,13 @@ export async function updatePlayer(_prev: PlayerFormState, formData: FormData): 
   const supabase = await createClient();
   const { error } = await supabase
     .from("players")
-    .update({ full_name: v.fullName, kind: v.kind, joined_on: v.joinedOn || null, left_on: v.leftOn || null })
+    .update({
+      full_name: v.fullName,
+      kind: v.kind,
+      joined_on: v.joinedOn || null,
+      left_on: v.leftOn || null,
+      carpool_group: v.carpoolGroup || null,
+    })
     .eq("id", id);
   if (error) return { values: v, errors: {}, message: "保存に失敗しました。もう一度お試しください。" };
 
