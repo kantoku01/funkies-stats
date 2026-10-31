@@ -55,10 +55,9 @@ export function buildLineMessage(g: LineMessageGame, members: LineMessageMember[
     : ["未定"];
 
   const managers = members.filter((m) => m.kind === "manager").map(name);
-  const players = members.filter((m) => m.kind === "regular");
   const carpool = CARPOOL_SECTIONS.map(([group, heading]) => {
-    // 配車が未設定の人は個別に入れる
-    const who = players.filter((p) => (p.carpool ?? "individual") === group).map(name);
+    // 配車には選手もマネージャーも入れる。未設定の人は個別
+    const who = members.filter((p) => (p.carpool ?? "individual") === group).map(name);
     return [heading, ...(who.length > 0 ? who : ["なし"])].join("\n");
   });
 

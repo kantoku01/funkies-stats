@@ -17,7 +17,7 @@ export function LineMessageForm({ initial }: { initial: string }) {
           </button>
         )}
       </div>
-      <p className="text-xs text-slate-500">○と△の人で作っています。送る前に直せます(直した文面は保存されません)。</p>
+      <p className="text-xs text-slate-500">○と△の人(選手・マネージャー)で作っています。送る前に直せます(直した文面は保存されません)。</p>
       <textarea
         value={text}
         onChange={(e) => setText(e.target.value)}

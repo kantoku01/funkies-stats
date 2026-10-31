@@ -85,7 +85,7 @@ export function PlayerForm({ action, initial, playerId, season, inheritedNote, s
         </Field>
       )}
 
-      {kind === "regular" && (
+      {kind !== "guest" && (
         <fieldset className="space-y-1">
           <legend className="text-sm font-medium">配車</legend>
           <div className="grid grid-cols-3 gap-2">

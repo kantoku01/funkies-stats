@@ -16,9 +16,10 @@ describe("parsePlayerForm", () => {
     });
   });
 
-  test("配車はグループA / B / 個別だけ。マネージャー・助っ人は持たない", () => {
+  test("配車はグループA / B / 個別だけ。マネージャーも持てて、助っ人は持たない", () => {
     expect(parsePlayerForm(fd({ fullName: "a", kind: "regular", joinedOn: "2026-01-01", carpoolGroup: "C" })).values.carpoolGroup).toBe("");
-    expect(parsePlayerForm(fd({ fullName: "a", kind: "manager", joinedOn: "2026-01-01", carpoolGroup: "A" })).values.carpoolGroup).toBe("");
+    expect(parsePlayerForm(fd({ fullName: "a", kind: "manager", joinedOn: "2026-01-01", carpoolGroup: "A" })).values.carpoolGroup).toBe("A");
+    expect(parsePlayerForm(fd({ fullName: "a", kind: "guest", carpoolGroup: "A" })).values.carpoolGroup).toBe("");
   });
 
   test("全角数字の背番号は半角にする。\"00\" はそのまま", () => {

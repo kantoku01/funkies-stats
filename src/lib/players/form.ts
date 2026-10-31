@@ -58,7 +58,7 @@ export function parsePlayerForm(formData: FormData): ParsedPlayerForm {
       errors.leftOn = "退団日は加入日より後にしてください。";
   }
 
-  if (values.kind !== "regular") values.carpoolGroup = ""; // 配車は選手だけ
+  if (values.kind === "guest") values.carpoolGroup = ""; // 配車は選手とマネージャー(助っ人はなし)
   if (values.kind === "guest") values.number = ""; // 助っ人は背番号なし(「助」と表示)
   else if (values.number && !/^[0-9]{1,3}$/.test(values.number))
     errors.number = "背番号は0〜3桁の数字で入力してください。";

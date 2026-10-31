@@ -59,6 +59,7 @@ describe("buildLineMessage", () => {
     expect(text).toContain("◆スケジュール\n未定");
     expect(text).toContain("◆ベース\n未定");
     expect(text).toContain("◆マネージャー\nマネ 花子");
+    expect(text).toContain("☆個別\nマネ 花子"); // マネージャーも配車に入る
     expect(text).toContain("☆配車グループA\nなし");
     expect(text).toContain("◆メモ\n雨なら中止");
   });
