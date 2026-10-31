@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { PullToRefresh } from "@/components/pull-to-refresh";
 import { SiteHeader } from "@/components/site-header";
 import "./globals.css";
 
@@ -22,6 +23,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="ja" className="h-full antialiased">
       <body className="flex min-h-full flex-col">
+        <PullToRefresh />
         <SiteHeader />
         <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-6">{children}</main>
       </body>
