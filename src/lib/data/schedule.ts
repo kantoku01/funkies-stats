@@ -34,6 +34,15 @@ export type ScheduleDay = {
     tournament: { name: string } | null;
   }[];
   answers: Record<string, { answer: Answer; comment: string | null }>; // player_id → 回答
+  events: ScheduleEvent[]; // その日の別の予定(忘年会など)。出欠は別に集計する
+};
+
+export type ScheduleEvent = {
+  id: string;
+  title: string;
+  start_time: string | null;
+  place: string | null;
+  answers: Record<string, { answer: Answer; comment: string | null }>;
 };
 
 export type ScheduleMonth = { days: ScheduleDay[]; members: ScheduleMember[] };
@@ -46,7 +55,7 @@ export async function getScheduleMonth(m: Month): Promise<ScheduleMonth> {
 
   const { first, last } = monthRange(m);
   const supabase = createPublicClient();
-  const [dates, games, answers, players, numbers] = await Promise.all([
+  const [dates, games, answers, players, numbers, events, eventAnswers] = await Promise.all([
     fetchAll((from, to) =>
       supabase.from("schedule_dates").select("day, kind, note, extra").gte("day", first).lte("day", last).order("day").range(from, to),
     ),
@@ -85,6 +94,27 @@ export async function getScheduleMonth(m: Month): Promise<ScheduleMonth> {
     fetchAll((from, to) =>
       supabase.from("season_numbers").select("season, player_id, number").lte("season", m.year).order("season").range(from, to),
     ),
+    fetchAll((from, to) =>
+      supabase
+        .from("schedule_events")
+        .select("id, day, title, start_time, place")
+        .gte("day", first)
+        .lte("day", last)
+        .order("day")
+        .order("start_time", { nullsFirst: false })
+        .order("created_at")
+        .range(from, to),
+    ),
+    fetchAll((from, to) =>
+      supabase
+        .from("event_answers")
+        .select("event_id, player_id, answer, comment, schedule_events!inner(day)")
+        .gte("schedule_events.day", first)
+        .lte("schedule_events.day", last)
+        .order("event_id")
+        .order("player_id")
+        .range(from, to),
+    ),
   ]);
 
   // その月に在籍している正規メンバーとマネージャー(背番号順、マネージャーは後ろ)
@@ -122,6 +152,17 @@ export async function getScheduleMonth(m: Month): Promise<ScheduleMonth> {
       answers: Object.fromEntries(
         answers.filter((a) => a.day === day).map((a) => [a.player_id, { answer: a.answer, comment: a.comment }]),
       ),
+      events: events
+        .filter((e) => e.day === day)
+        .map((e) => ({
+          id: e.id,
+          title: e.title,
+          start_time: e.start_time,
+          place: e.place,
+          answers: Object.fromEntries(
+            eventAnswers.filter((a) => a.event_id === e.id).map((a) => [a.player_id, { answer: a.answer, comment: a.comment }]),
+          ),
+        })),
     } satisfies ScheduleDay;
   });
 

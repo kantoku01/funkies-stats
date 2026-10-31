@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { removeExtraDate, saveScheduleDate, type ScheduleEditState } from "../actions";
+import { EventForm } from "./event-editor";
 
 // 編集者向け: その日の予定(活動予定 / 休み / 未定)とメモ。試合の予定にする / 試合を足す
 export function DayEditor({
@@ -68,6 +69,11 @@ export function DayEditor({
             {removeState.message && <p className="text-red-700">{removeState.message}</p>}
           </form>
         )}
+        {/* 練習・試合とは別に出欠を取る予定(忘年会など) */}
+        <div className="mt-3 space-y-1 border-t border-slate-100 pt-2">
+          <p className="font-medium text-slate-600">別の予定を足す(忘年会など、出欠を別に集計)</p>
+          <EventForm day={day} submitLabel="別の予定を足す" />
+        </div>
       </details>
       <a
         href={toGame ? `/admin/games/new?date=${day}&from=schedule` : `/admin/games/new?date=${day}`}

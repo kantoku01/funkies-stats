@@ -272,6 +272,26 @@ export type Database = {
         Update: Partial<Database["public"]["Tables"]["attendance_answers"]["Insert"]>;
         Relationships: [];
       };
+      schedule_events: {
+        Row: { id: string; day: string; title: string; start_time: string | null; place: string | null; created_at: string };
+        Insert: { id?: string; day: string; title: string; start_time?: string | null; place?: string | null; created_at?: string };
+        Update: Partial<Database["public"]["Tables"]["schedule_events"]["Insert"]>;
+        Relationships: [];
+      };
+      event_answers: {
+        Row: { event_id: string; player_id: string; answer: "yes" | "maybe" | "no"; comment: string | null; updated_at: string };
+        Insert: { event_id: string; player_id: string; answer: "yes" | "maybe" | "no"; comment?: string | null; updated_at?: string };
+        Update: Partial<Database["public"]["Tables"]["event_answers"]["Insert"]>;
+        Relationships: [
+          {
+            foreignKeyName: "event_answers_event_id_fkey";
+            columns: ["event_id"];
+            isOneToOne: false;
+            referencedRelation: "schedule_events";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       editors: {
         Row: { user_id: string; display_name: string };
         Insert: { user_id: string; display_name: string };
@@ -284,6 +304,10 @@ export type Database = {
       is_editor: { Args: Record<PropertyKey, never>; Returns: boolean };
       answer_attendance: {
         Args: { p_day: string; p_player_id: string; p_answer: string | null; p_comment: string | null };
+        Returns: undefined;
+      };
+      answer_event: {
+        Args: { p_event_id: string; p_player_id: string; p_answer: string | null; p_comment: string | null };
         Returns: undefined;
       };
       save_player_batting: {

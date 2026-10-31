@@ -60,4 +60,28 @@ reset role;
 
 -- 選手を消すと回答も消える
 delete from public.players where id = '10000000-0000-0000-0000-000000000004';
+-- 別の予定(忘年会など)の出欠
+create temp table ev (id uuid);
+grant select, insert on ev to anon, authenticated;
+set role anon;
+select pg_temp.expect_error($$insert into public.schedule_events (day, title) values (current_date, '忘年会')$$, '匿名: 別の予定は作れない');
+reset role;
+set role authenticated;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000e';
+with x as (insert into public.schedule_events (day, title, start_time, place) select pg_temp.sun(), '忘年会', '19:00', 'といとい' returning id)
+insert into ev select id from x;
+reset role;
+set role anon;
+select public.answer_event((select id from ev), '10000000-0000-0000-0000-000000000001', 'no', '練習だけ');
+select public.answer_event((select id from ev), '10000000-0000-0000-0000-000000000002', 'yes', null);
+select pg_temp.expect((select string_agg(answer, ',' order by player_id) from public.event_answers), 'no,yes', '別の予定にも回答できる');
+select pg_temp.expect((select answer from public.attendance_answers where day = pg_temp.sun() and player_id = '10000000-0000-0000-0000-000000000001'), 'maybe', 'その日の出欠とは別に集計される');
+select pg_temp.expect_error($$select public.answer_event((select id from ev), '10000000-0000-0000-0000-000000000003', 'yes', null)$$, '別の予定: 助っ人は回答できない');
+select pg_temp.expect_error($$select public.answer_event(gen_random_uuid(), '10000000-0000-0000-0000-000000000001', 'yes', null)$$, '別の予定: ない予定には回答できない');
+select public.answer_event((select id from ev), '10000000-0000-0000-0000-000000000002', null, null);
+select pg_temp.expect((select count(*)::text from public.event_answers), '1', '別の予定: 回答を取り消せる');
+reset role;
+delete from public.schedule_events;
+select pg_temp.expect((select count(*)::text from public.event_answers), '0', '別の予定を消すと回答も消える');
+
 \echo 'ATTENDANCE TESTS PASSED'
