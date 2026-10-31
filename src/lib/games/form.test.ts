@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { formatGameTime, parseGameForm, resultFromScores, tournamentNameWithYear } from "./form";
+import { defaultMeetTime, formatGameTime, parseGameForm, resultFromScores, tournamentNameWithYear } from "./form";
 
 const fd = (entries: Record<string, string>) => {
   const f = new FormData();
@@ -140,5 +140,26 @@ describe("tournamentNameWithYear", () => {
   test("年度がなければ先頭に付ける", () => {
     expect(tournamentNameWithYear("スカイカップエンジョイ1部", 2026)).toBe("2026スカイカップエンジョイ1部");
     expect(tournamentNameWithYear("2026スカイカップ", 2026)).toBe("2026スカイカップ");
+  });
+});
+
+describe("集合時間とユニフォーム", () => {
+  test("集合は開始の50分前", () => {
+    expect(defaultMeetTime("13:00")).toBe("12:10");
+    expect(defaultMeetTime("07:00:00")).toBe("06:10");
+    expect(defaultMeetTime("00:30")).toBe("23:40");
+  });
+  test("集合時間が空なら開始の50分前で保存", () => {
+    const r = parseGameForm(fd({ status: "scheduled", gameDate: "2026-11-01", startTime: "13:00" }));
+    expect(r.ok && r.record.meet_time).toBe("12:10");
+  });
+  test("集合時間を入れたらそのまま", () => {
+    const r = parseGameForm(fd({ status: "scheduled", gameDate: "2026-11-01", startTime: "13:00", meetTime: "12:00" }));
+    expect(r.ok && r.record.meet_time).toBe("12:00");
+  });
+  test("ユニフォームは青か白", () => {
+    expect(parseGameForm(fd({ status: "scheduled", gameDate: "2026-11-01", uniform: "青" })).ok).toBe(true);
+    const r = parseGameForm(fd({ status: "scheduled", gameDate: "2026-11-01", uniform: "赤" }));
+    expect(r.ok || r.errors.uniform).toBe("ユニフォームは青か白を選んでください。");
   });
 });

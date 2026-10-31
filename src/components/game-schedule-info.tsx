@@ -1,4 +1,4 @@
-import { formatGameTime, formatTime } from "@/lib/games/form";
+import { defaultMeetTime, formatGameTime, formatTime } from "@/lib/games/form";
 
 export type ScheduleInfo = {
   startTime: string | null;
@@ -11,7 +11,8 @@ export type ScheduleInfo = {
 // 試合予定の情報(集合・開始・場所・ユニフォーム・ベース持参)。入っている項目だけ出す
 export function GameScheduleInfo({ info, className = "" }: { info: ScheduleInfo; className?: string }) {
   const rows = [
-    ["集合", formatTime(info.meetTime)],
+    // 集合時間が未入力なら、開始の50分前
+    ["集合", formatTime(info.meetTime ?? (info.startTime ? defaultMeetTime(info.startTime) : null))],
     ["時間", formatGameTime(info.startTime)],
     ["場所", info.venue],
     ["ユニフォーム", info.uniform],

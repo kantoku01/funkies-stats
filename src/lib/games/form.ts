@@ -79,6 +79,17 @@ export function formatTime(t: string | null): string {
   return `${Number(h)}:${m}`;
 }
 
+// 集合は基本、試合開始の50分前。"13:00" / "13:00:00" → "12:10"
+export const MEET_BEFORE_MINUTES = 50;
+export function defaultMeetTime(start: string): string {
+  const [h, m] = start.split(":").map(Number);
+  const t = (h * 60 + m - MEET_BEFORE_MINUTES + 24 * 60) % (24 * 60);
+  return `${String(Math.floor(t / 60)).padStart(2, "0")}:${String(t % 60).padStart(2, "0")}`;
+}
+
+// ユニフォームは青か白(未定なら空)
+export const UNIFORM_COLORS = ["青", "白"] as const;
+
 // 試合はすべて2時間。開始時間から「13:00〜15:00」を作る
 export const GAME_HOURS = 2;
 export function formatGameTime(start: string | null): string {
@@ -147,7 +158,7 @@ export function parseGameForm(formData: FormData): ParsedGameForm {
     if (values[key] !== "" && !isValidTime(values[key])) errors[key] = "時刻は 9:00 のように入力してください。";
   }
   if (values.venue.length > 60) errors.venue = "場所は60文字以内で入力してください。";
-  if (values.uniform.length > 30) errors.uniform = "ユニフォームの色は30文字以内で入力してください。";
+  if (values.uniform !== "" && !(UNIFORM_COLORS as readonly string[]).includes(values.uniform)) errors.uniform = "ユニフォームは青か白を選んでください。";
 
   if (values.memo.length > 200) errors.memo = "メモは200文字以内で入力してください。";
 
@@ -174,7 +185,12 @@ export function parseGameForm(formData: FormData): ParsedGameForm {
     record: {
       status: values.status,
       start_time: values.startTime ? normalizeTime(values.startTime) : null,
-      meet_time: values.meetTime ? normalizeTime(values.meetTime) : null,
+      // 集合時間が空なら開始の50分前
+      meet_time: values.meetTime
+        ? normalizeTime(values.meetTime)
+        : values.startTime
+          ? defaultMeetTime(normalizeTime(values.startTime))
+          : null,
       venue: values.venue || null,
       uniform: values.uniform || null,
       bring_bases: values.bringBases === "" ? null : values.bringBases === "need",

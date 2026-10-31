@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useActionState, useState } from "react";
-import { resultFromScores, type GameFormValues } from "@/lib/games/form";
+import { defaultMeetTime, resultFromScores, UNIFORM_COLORS, type GameFormValues } from "@/lib/games/form";
 import { ROUND_SUGGESTIONS, STAGE_LABEL } from "@/lib/games/type-label";
 import type { GameFormState } from "./actions";
 
@@ -52,6 +52,9 @@ function GameFormFields({
   const [gameDate, setGameDate] = useState(v.gameDate);
   const [status, setStatus] = useState(v.status);
   const [bringBases, setBringBases] = useState(v.bringBases);
+  const [uniform, setUniform] = useState(v.uniform);
+  const [startTime, setStartTime] = useState(v.startTime);
+  const [meetTime, setMeetTime] = useState(v.meetTime);
   const [gameType, setGameType] = useState(v.gameType);
   const [tournamentId, setTournamentId] = useState(v.tournamentId);
   const [stage, setStage] = useState(v.stage);
@@ -115,25 +118,52 @@ function GameFormFields({
 
       <div className="grid grid-cols-2 gap-3">
         <Field label="集合時間" error={state.errors.meetTime}>
-          <input name="meetTime" defaultValue={v.meetTime} type="time" className={`${inputBase} w-full`} />
+          <input name="meetTime" value={meetTime} onChange={(e) => setMeetTime(e.target.value)} type="time" className={`${inputBase} w-full`} />
         </Field>
         <Field label="開始時間" error={state.errors.startTime}>
-          <input name="startTime" defaultValue={v.startTime} type="time" className={`${inputBase} w-full`} />
+          <input
+            name="startTime"
+            value={startTime}
+            onChange={(e) => {
+              const next = e.target.value;
+              // 集合時間が空か、前の開始時間から自動で入れたままなら、開始の50分前に合わせる
+              if (meetTime === "" || (startTime && meetTime === defaultMeetTime(startTime))) {
+                setMeetTime(/^\d{2}:\d{2}/.test(next) ? defaultMeetTime(next) : "");
+              }
+              setStartTime(next);
+            }}
+            type="time"
+            className={`${inputBase} w-full`}
+          />
         </Field>
       </div>
+      <p className="-mt-3 text-xs text-slate-500">集合時間は開始の50分前が自動で入ります(変更もできます)。</p>
 
       <Field label="場所(グラウンド)" error={state.errors.venue}>
         <input name="venue" defaultValue={v.venue} autoComplete="off" className={`${inputBase} w-full`} />
       </Field>
 
       <div className="grid grid-cols-2 gap-3">
-        <Field label="ユニフォームの色" error={state.errors.uniform}>
-          <input name="uniform" defaultValue={v.uniform} list="uniform-suggestions" autoComplete="off" className={`${inputBase} w-full`} />
-          <datalist id="uniform-suggestions">
-            <option value="白" />
-            <option value="青" />
-          </datalist>
-        </Field>
+        <fieldset className="space-y-1">
+          <legend className="text-sm font-medium">ユニフォーム</legend>
+          <div className="grid grid-cols-2 gap-1">
+            {UNIFORM_COLORS.map((color) => (
+              <label key={color} className={TOGGLE}>
+                <input
+                  type="radio"
+                  name="uniform"
+                  value={color}
+                  checked={uniform === color}
+                  onChange={() => setUniform(color)}
+                  onClick={() => uniform === color && setUniform("")}
+                  className="sr-only"
+                />
+                {color}
+              </label>
+            ))}
+          </div>
+          {state.errors.uniform && <p className="text-sm text-red-700">{state.errors.uniform}</p>}
+        </fieldset>
         <fieldset className="space-y-1">
           <legend className="text-sm font-medium">ベース持参</legend>
           <div className="grid grid-cols-2 gap-1">
