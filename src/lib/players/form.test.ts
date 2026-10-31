@@ -9,11 +9,16 @@ const fd = (entries: Record<string, string>) => {
 
 describe("parsePlayerForm", () => {
   test("正規メンバー", () => {
-    const r = parsePlayerForm(fd({ fullName: " 宮川　太郎 ", kind: "regular", joinedOn: "2026-01-01", number: "0" }));
+    const r = parsePlayerForm(fd({ fullName: " 宮川　太郎 ", kind: "regular", joinedOn: "2026-01-01", number: "0", carpoolGroup: "A" }));
     expect(r).toEqual({
       ok: true,
-      values: { fullName: "宮川 太郎", kind: "regular", joinedOn: "2026-01-01", leftOn: "", number: "0" },
+      values: { fullName: "宮川 太郎", kind: "regular", joinedOn: "2026-01-01", leftOn: "", number: "0", carpoolGroup: "A" },
     });
+  });
+
+  test("配車はグループA / B / 個別だけ。マネージャー・助っ人は持たない", () => {
+    expect(parsePlayerForm(fd({ fullName: "a", kind: "regular", joinedOn: "2026-01-01", carpoolGroup: "C" })).values.carpoolGroup).toBe("");
+    expect(parsePlayerForm(fd({ fullName: "a", kind: "manager", joinedOn: "2026-01-01", carpoolGroup: "A" })).values.carpoolGroup).toBe("");
   });
 
   test("全角数字の背番号は半角にする。\"00\" はそのまま", () => {
