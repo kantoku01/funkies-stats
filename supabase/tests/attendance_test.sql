@@ -84,17 +84,4 @@ reset role;
 delete from public.schedule_events;
 select pg_temp.expect((select count(*)::text from public.event_answers), '0', '別の予定を消すと回答も消える');
 
--- LINE のグループと送った記録: 匿名は見られない、編集者は見られる、直接は書き込めない
-insert into public.line_settings (group_id) values ('Cgroup');
-insert into public.line_posts (kind, ref) values ('schedule', '2026-11-01');
-select pg_temp.expect_error($$insert into public.line_posts (kind, ref) values ('schedule', '2026-11-01')$$, 'LINE: 同じ連絡は二重に記録できない');
-set role anon;
-select pg_temp.expect_error($$select * from public.line_settings$$, 'LINE: 匿名はグループを見られない');
-reset role;
-set role authenticated;
-set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000e';
-select pg_temp.expect((select group_id from public.line_settings), 'Cgroup', 'LINE: 編集者はグループを見られる');
-select pg_temp.expect_error($$insert into public.line_posts (kind, ref) values ('schedule', '2026-11-08')$$, 'LINE: 編集者も直接は書き込めない');
-reset role;
-
 \echo 'ATTENDANCE TESTS PASSED'

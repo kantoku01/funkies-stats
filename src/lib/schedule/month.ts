@@ -78,10 +78,3 @@ export function monthToOpen(today: string, daysThisMonth: string[]): Month {
   const last = daysThisMonth.reduce((a, b) => (a > b ? a : b), "");
   return last !== "" && today > last ? shiftMonth(m, 1) : m;
 }
-
-// "2026-11-01" の n 日後("2026-11-02")
-export function shiftDay(day: string, n: number): string {
-  const d = new Date(`${day}T00:00:00Z`);
-  d.setUTCDate(d.getUTCDate() + n);
-  return d.toISOString().slice(0, 10);
-}

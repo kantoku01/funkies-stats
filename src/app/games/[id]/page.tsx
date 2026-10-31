@@ -12,9 +12,8 @@ import { battingSummary } from "@/lib/batting/entry";
 import { getGameDetail, type GameDetail } from "@/lib/data/detail";
 import { getScheduleMonth } from "@/lib/data/schedule";
 import { formatGameDate } from "@/lib/format";
-import { gameDayBeforeMessage } from "@/lib/line/messages";
-import { getGameLineStatus } from "@/lib/line/posts";
-import { ANSWER_MARK, parseMonth } from "@/lib/schedule/month";
+import { buildLineMessage, shortNames } from "@/lib/games/line-message";
+import { ANSWER_MARK, countsAsAttending, parseMonth } from "@/lib/schedule/month";
 import { LineMessageForm } from "./line-message-form";
 
 export const metadata: Metadata = { title: "試合詳細" };
@@ -175,6 +174,25 @@ async function GameAttendance({ game: g }: { game: GameDetail }) {
   const yes = groups[0].who;
   const yesPlayers = yes.filter((m) => m.kind === "regular").length;
 
+  // 試合前日の LINE の文面(○と△の人。名前は名字だけ、同じ名字はチーム全員で見分ける)
+  const message = buildLineMessage(
+    {
+      ...g.typeInfo,
+      game_date: day,
+      opponent: g.opponent,
+      start_time: g.schedule.startTime,
+      meet_time: g.schedule.meetTime,
+      venue: g.schedule.venue,
+      venue_map_url: g.schedule.venueMapUrl,
+      uniform: g.schedule.uniform,
+      bring_bases: g.schedule.bringBases,
+      memo: g.memo,
+    },
+    active
+      .filter((m) => countsAsAttending(answerOf(m.id)?.answer))
+      .map((m) => ({ id: m.id, fullName: m.name, kind: m.kind, carpool: m.carpool })),
+    shortNames(members.map((m) => ({ id: m.id, fullName: m.name }))),
+  );
 
   return (
     <>
@@ -214,15 +232,9 @@ async function GameAttendance({ game: g }: { game: GameDetail }) {
         </ul>
       </div>
       <EditorOnly>
-        <GameLinePanel game={g} />
+        {/* 出欠が変わったら文面も作り直す */}
+        <LineMessageForm key={message} initial={message} />
       </EditorOnly>
     </>
   );
-}
-
-// 編集者向け: 試合前日の連絡(文面を直して、グループに送る / LINE で送る / コピー)
-async function GameLinePanel({ game: g }: { game: GameDetail }) {
-  const [message, status] = await Promise.all([gameDayBeforeMessage(g), getGameLineStatus(g.id)]);
-  // 出欠が変わったら文面も作り直す
-  return <LineMessageForm key={message} initial={message} gameId={g.id} {...status} />;
 }

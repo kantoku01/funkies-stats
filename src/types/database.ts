@@ -297,18 +297,6 @@ export type Database = {
           },
         ];
       };
-      line_settings: {
-        Row: { id: boolean; group_id: string; updated_at: string };
-        Insert: { id?: boolean; group_id: string; updated_at?: string };
-        Update: Partial<Database["public"]["Tables"]["line_settings"]["Insert"]>;
-        Relationships: [];
-      };
-      line_posts: {
-        Row: { id: string; kind: "day_before" | "schedule"; ref: string; auto: boolean; sent_at: string };
-        Insert: { id?: string; kind: "day_before" | "schedule"; ref: string; auto?: boolean; sent_at?: string };
-        Update: Partial<Database["public"]["Tables"]["line_posts"]["Insert"]>;
-        Relationships: [];
-      };
       editors: {
         Row: { user_id: string; display_name: string };
         Insert: { user_id: string; display_name: string };

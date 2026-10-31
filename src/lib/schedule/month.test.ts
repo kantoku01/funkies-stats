@@ -1,6 +1,5 @@
 import { describe, expect, test } from "vitest";
 import {
-  shiftDay,
   monthToOpen,
   parseActivityNote,
   countAnswers,
@@ -84,12 +83,5 @@ describe("開く月", () => {
     expect(monthToOpen("2026-10-31", ["2026-10-04", "2026-10-25"])).toEqual({ year: 2026, month: 11 });
     expect(monthToOpen("2026-10-25", ["2026-10-04", "2026-10-25"])).toEqual({ year: 2026, month: 10 });
     expect(monthToOpen("2026-12-28", ["2026-12-20"])).toEqual({ year: 2027, month: 1 });
-  });
-});
-
-describe("shiftDay", () => {
-  test("月・年をまたぐ", () => {
-    expect(shiftDay("2026-10-31", 1)).toBe("2026-11-01");
-    expect(shiftDay("2027-01-01", -1)).toBe("2026-12-31");
   });
 });
