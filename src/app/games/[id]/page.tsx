@@ -183,6 +183,7 @@ async function GameAttendance({ game: g }: { game: GameDetail }) {
       start_time: g.schedule.startTime,
       meet_time: g.schedule.meetTime,
       venue: g.schedule.venue,
+      venue_map_url: g.schedule.venueMapUrl,
       uniform: g.schedule.uniform,
       bring_bases: g.schedule.bringBases,
       memo: g.memo,

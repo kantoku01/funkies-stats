@@ -11,6 +11,7 @@ export type LineMessageGame = GameTypeInfo & {
   start_time: string | null;
   meet_time: string | null;
   venue: string | null;
+  venue_map_url: string | null;
   uniform: string | null;
   bring_bases: boolean | null;
   memo: string | null;
@@ -63,7 +64,7 @@ export function buildLineMessage(g: LineMessageGame, members: LineMessageMember[
 
   const sections = [
     title,
-    ["◆球場", g.venue ?? "未定"],
+    ["◆球場", g.venue ?? "未定", ...(g.venue_map_url ? [g.venue_map_url] : [])],
     ["◆スケジュール", ...schedule],
     ["◆ユニフォーム", g.uniform ?? "未定"],
     ["◆ベース", g.bring_bases === null ? "未定" : g.bring_bases ? "必要" : "不要"],

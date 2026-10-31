@@ -6,7 +6,7 @@ import { fetchAll } from "./fetch-all";
 import { STATS_TAG } from "./stats";
 
 const GAME_COLUMNS =
-  "id, game_date, opponent, team_score, opponent_score, result, memo, status, start_time, meet_time, venue, uniform, bring_bases, game_type, tournament_id, stage, round_label, tournament:tournaments(name)" as const;
+  "id, game_date, opponent, team_score, opponent_score, result, memo, status, start_time, meet_time, venue, venue_map_url, uniform, bring_bases, game_type, tournament_id, stage, round_label, tournament:tournaments(name)" as const;
 
 // 試合一覧(誰でも閲覧)。予定も含む。新しい順
 export async function getGamesBySeason(season: number) {
@@ -107,4 +107,24 @@ export async function getTournamentsForAdmin() {
   return fetchAll((from, to) =>
     supabase.from("tournaments").select("id, season, name").order("season", { ascending: false }).order("name").range(from, to),
   );
+}
+
+// 試合の追加・編集用: これまでに使った場所と、その Google マップの URL(新しい試合のものを優先)
+export async function getVenuesForAdmin(): Promise<{ venue: string; mapUrl: string | null }[]> {
+  const supabase = await createClient();
+  const rows = await fetchAll((from, to) =>
+    supabase
+      .from("games")
+      .select("venue, venue_map_url")
+      .not("venue", "is", null)
+      .order("game_date", { ascending: false })
+      .order("id")
+      .range(from, to),
+  );
+  const venues = new Map<string, string | null>();
+  for (const r of rows) {
+    if (!r.venue) continue;
+    if (!venues.has(r.venue) || (venues.get(r.venue) === null && r.venue_map_url)) venues.set(r.venue, r.venue_map_url);
+  }
+  return [...venues].map(([venue, mapUrl]) => ({ venue, mapUrl }));
 }

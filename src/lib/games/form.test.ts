@@ -24,6 +24,7 @@ describe("parseGameForm", () => {
       start_time: null,
       meet_time: null,
       venue: null,
+      venue_map_url: null,
       uniform: null,
       bring_bases: null,
       game_date: "2026-09-20",
@@ -168,5 +169,14 @@ describe("雨天中止", () => {
   test("スコアと勝敗は持たない", () => {
     const r = parseGameForm(fd({ status: "cancelled", gameDate: "2026-11-15", teamScore: "3", result: "win" }));
     expect(r.ok && [r.record.status, r.record.result, r.record.team_score].join("/")).toBe("cancelled//");
+  });
+});
+
+describe("Google マップの URL", () => {
+  test("URL は任意。入れるなら https:// で始まるもの", () => {
+    const ok = parseGameForm(fd({ status: "scheduled", gameDate: "2026-11-01", venueMapUrl: "https://maps.app.goo.gl/abc" }));
+    expect(ok.ok && ok.record.venue_map_url).toBe("https://maps.app.goo.gl/abc");
+    const ng = parseGameForm(fd({ status: "scheduled", gameDate: "2026-11-01", venueMapUrl: "十三公園" }));
+    expect(ng.ok).toBe(false);
   });
 });

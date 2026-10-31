@@ -4,6 +4,7 @@ export type ScheduleInfo = {
   startTime: string | null;
   meetTime: string | null;
   venue: string | null;
+  venueMapUrl?: string | null;
   uniform: string | null;
   bringBases: boolean | null;
 };
@@ -24,7 +25,14 @@ export function GameScheduleInfo({ info, className = "" }: { info: ScheduleInfo;
       {rows.map(([label, value]) => (
         <div key={label} className="contents">
           <dt className="text-slate-500">{label}</dt>
-          <dd className={`font-medium ${label === "ベース持参" && value === "必要" ? "text-accent-600" : ""}`}>{value}</dd>
+          <dd className={`font-medium ${label === "ベース持参" && value === "必要" ? "text-accent-600" : ""}`}>
+            {value}
+            {label === "場所" && info.venueMapUrl && (
+              <a href={info.venueMapUrl} target="_blank" rel="noopener noreferrer" className="ml-2 font-normal text-brand-700">
+                地図を開く ›
+              </a>
+            )}
+          </dd>
         </div>
       ))}
     </dl>
@@ -35,12 +43,14 @@ export const scheduleOf = (g: {
   start_time: string | null;
   meet_time: string | null;
   venue: string | null;
+  venue_map_url?: string | null;
   uniform: string | null;
   bring_bases: boolean | null;
 }): ScheduleInfo => ({
   startTime: g.start_time,
   meetTime: g.meet_time,
   venue: g.venue,
+  venueMapUrl: g.venue_map_url ?? null,
   uniform: g.uniform,
   bringBases: g.bring_bases,
 });

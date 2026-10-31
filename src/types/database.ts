@@ -91,6 +91,7 @@ export type Database = {
           start_time: string | null; // "09:00:00"
           meet_time: string | null;
           venue: string | null;
+          venue_map_url: string | null; // 場所の Google マップの URL
           uniform: string | null;
           bring_bases: boolean | null;
           game_type: GameType;
@@ -112,6 +113,7 @@ export type Database = {
           start_time?: string | null;
           meet_time?: string | null;
           venue?: string | null;
+          venue_map_url?: string | null;
           uniform?: string | null;
           bring_bases?: boolean | null;
           game_type?: GameType;

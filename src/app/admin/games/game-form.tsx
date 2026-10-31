@@ -13,6 +13,7 @@ type Props = {
   gameId?: string;
   initialStatus?: GameStatus; // 編集前の状態(予定 → 終了にしたら参加者登録へ進む)
   tournaments: { id: string; season: number; name: string }[];
+  venues: { venue: string; mapUrl: string | null }[]; // これまでの場所(地図の URL を引き継ぐ)
   cancelHref: string;
   submitLabel: string;
   scheduleDay?: string; // 活動予定から試合の予定にするとき、その日付(保存したらメモの時間・場所を消す)
@@ -42,6 +43,7 @@ function GameFormFields({
   scheduleDay,
   initialStatus,
   tournaments,
+  venues,
   cancelHref,
   submitLabel,
   state,
@@ -56,6 +58,7 @@ function GameFormFields({
   const [status, setStatus] = useState(v.status);
   const [bringBases, setBringBases] = useState(v.bringBases);
   const [uniform, setUniform] = useState(v.uniform);
+  const [mapUrl, setMapUrl] = useState(v.venueMapUrl);
   const [startTime, setStartTime] = useState(v.startTime);
   const [meetTime, setMeetTime] = useState(v.meetTime);
   const [gameType, setGameType] = useState(v.gameType);
@@ -145,7 +148,36 @@ function GameFormFields({
       <p className="-mt-3 text-xs text-slate-500">集合時間は開始の50分前が自動で入ります(変更もできます)。</p>
 
       <Field label="場所(グラウンド)" error={state.errors.venue}>
-        <input name="venue" defaultValue={v.venue} autoComplete="off" className={`${inputBase} w-full`} />
+        <input
+          name="venue"
+          defaultValue={v.venue}
+          list="venue-suggestions"
+          autoComplete="off"
+          onChange={(e) => {
+            // 前に使った場所を選んだら、そのときの地図の URL を入れる(空のときだけ)
+            const known = venues.find((x) => x.venue === e.target.value.trim())?.mapUrl;
+            if (known && !mapUrl) setMapUrl(known);
+          }}
+          className={`${inputBase} w-full`}
+        />
+        <datalist id="venue-suggestions">
+          {venues.map((x) => (
+            <option key={x.venue} value={x.venue} />
+          ))}
+        </datalist>
+      </Field>
+
+      <Field label="Google マップの URL(任意)" error={state.errors.venueMapUrl}>
+        <input
+          name="venueMapUrl"
+          value={mapUrl}
+          onChange={(e) => setMapUrl(e.target.value)}
+          type="url"
+          inputMode="url"
+          autoComplete="off"
+          placeholder="https://maps.app.goo.gl/..."
+          className={`${inputBase} w-full`}
+        />
       </Field>
 
       <div className="grid grid-cols-2 gap-3">

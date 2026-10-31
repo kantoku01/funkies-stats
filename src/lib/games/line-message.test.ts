@@ -7,6 +7,7 @@ const game: LineMessageGame = {
   start_time: "13:00:00",
   meet_time: null,
   venue: "十三公園",
+  venue_map_url: "https://maps.app.goo.gl/abc",
   uniform: "青",
   bring_bases: false,
   memo: null,
@@ -39,7 +40,7 @@ describe("buildLineMessage", () => {
     expect(buildLineMessage(game, members, shortNames(members))).toBe(
       [
         "11/1(日) 2026スカイカップ 冬の陣 予選リーグ vs 忍spirit",
-        "◆球場\n十三公園",
+        "◆球場\n十三公園\nhttps://maps.app.goo.gl/abc",
         "◆スケジュール\n12:10 球場集合\n13:00 試合開始\n15:00 試合終了",
         "◆ユニフォーム\n青",
         "◆ベース\n不要",
@@ -50,7 +51,7 @@ describe("buildLineMessage", () => {
   });
   test("未入力は未定、マネージャーとメモも入れる", () => {
     const text = buildLineMessage(
-      { ...game, game_type: "open", tournament: null, stage: null, opponent: null, start_time: null, venue: null, uniform: null, bring_bases: null, memo: "雨なら中止" },
+      { ...game, game_type: "open", tournament: null, stage: null, opponent: null, start_time: null, venue: null, venue_map_url: null, uniform: null, bring_bases: null, memo: "雨なら中止" },
       [{ id: "9", fullName: "マネ 花子", kind: "manager", carpool: null }],
       new Map(),
     );

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { connection } from "next/server";
-import { getTournamentsForAdmin } from "@/lib/data/games";
+import { getTournamentsForAdmin, getVenuesForAdmin } from "@/lib/data/games";
 import { defaultMeetTime } from "@/lib/games/form";
 import { parseActivityNote } from "@/lib/schedule/month";
 import { createClient } from "@/lib/supabase/server";
@@ -15,7 +15,7 @@ export default async function NewGamePage({ searchParams }: PageProps<"/admin/ga
   const dateParam = typeof query.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(query.date) ? query.date : null;
   // 今日の日付を既定値にするので、リクエストごとに描画する
   await connection();
-  const tournaments = await getTournamentsForAdmin();
+  const [tournaments, venues] = await Promise.all([getTournamentsForAdmin(), getVenuesForAdmin()]);
   // 予定・出欠ページの「試合の予定にする」から来たら、活動予定のメモから開始時間と場所を引き継ぐ
   const fromSchedule = query.from === "schedule" && dateParam !== null;
   let fromNote: { start: string | null; venue: string | null } = { start: null, venue: null };
@@ -30,11 +30,13 @@ export default async function NewGamePage({ searchParams }: PageProps<"/admin/ga
       <GameForm
         action={createGame}
         tournaments={tournaments}
+        venues={venues}
         initial={{
           status: "scheduled",
           startTime: fromNote.start ?? "",
           meetTime: fromNote.start ? defaultMeetTime(fromNote.start) : "",
           venue: fromNote.venue ?? "",
+          venueMapUrl: (fromNote.venue && venues.find((x) => x.venue === fromNote.venue)?.mapUrl) || "",
           uniform: "",
           bringBases: "",
           gameDate: dateParam ?? todayInJapan(new Date()),

@@ -6,6 +6,7 @@ export type GameFormValues = {
   startTime: string; // "09:00"
   meetTime: string;
   venue: string;
+  venueMapUrl: string; // Google マップの URL(任意)
   uniform: string;
   bringBases: "" | "need" | "none"; // ベース持参: 必要 / 不要 / 未定
   opponent: string;
@@ -27,6 +28,7 @@ export type GameRecord = {
   start_time: string | null;
   meet_time: string | null;
   venue: string | null;
+  venue_map_url: string | null;
   uniform: string | null;
   bring_bases: boolean | null;
   game_date: string;
@@ -122,6 +124,7 @@ export function parseGameForm(formData: FormData): ParsedGameForm {
     startTime: toHalfWidth(str("startTime")),
     meetTime: toHalfWidth(str("meetTime")),
     venue: str("venue").replace(/[\s　]+/g, " "),
+    venueMapUrl: str("venueMapUrl"),
     uniform: str("uniform"),
     bringBases: bases === "need" || bases === "none" ? bases : "",
     opponent: str("opponent").replace(/[\s　]+/g, " "),
@@ -158,6 +161,9 @@ export function parseGameForm(formData: FormData): ParsedGameForm {
     if (values[key] !== "" && !isValidTime(values[key])) errors[key] = "時刻は 9:00 のように入力してください。";
   }
   if (values.venue.length > 60) errors.venue = "場所は60文字以内で入力してください。";
+  if (values.venueMapUrl && (!/^https?:\/\/\S+$/.test(values.venueMapUrl) || values.venueMapUrl.length > 500)) {
+    errors.venueMapUrl = "Google マップの URL(https:// で始まるもの)を貼り付けてください。";
+  }
   if (values.uniform !== "" && !(UNIFORM_COLORS as readonly string[]).includes(values.uniform)) errors.uniform = "ユニフォームは青か黒を選んでください。";
 
   if (values.memo.length > 200) errors.memo = "メモは200文字以内で入力してください。";
@@ -192,6 +198,7 @@ export function parseGameForm(formData: FormData): ParsedGameForm {
           ? defaultMeetTime(normalizeTime(values.startTime))
           : null,
       venue: values.venue || null,
+      venue_map_url: values.venueMapUrl || null,
       uniform: values.uniform || null,
       bring_bases: values.bringBases === "" ? null : values.bringBases === "need",
       game_date: values.gameDate,

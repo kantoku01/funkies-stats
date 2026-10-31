@@ -1,14 +1,14 @@
 import type { Metadata } from "next";
 import { updateGame } from "../../actions";
 import { GameForm } from "../../game-form";
-import { getTournamentsForAdmin } from "@/lib/data/games";
+import { getTournamentsForAdmin, getVenuesForAdmin } from "@/lib/data/games";
 import { loadGame } from "../../load-game";
 
 export const metadata: Metadata = { title: "試合の編集" };
 
 export default async function EditGamePage({ params, searchParams }: PageProps<"/admin/games/[id]/edit">) {
   const [{ id }, query] = await Promise.all([params, searchParams]);
-  const [g, tournaments] = await Promise.all([loadGame(id), getTournamentsForAdmin()]);
+  const [g, tournaments, venues] = await Promise.all([loadGame(id), getTournamentsForAdmin(), getVenuesForAdmin()]);
 
   return (
     <section className="space-y-4">
@@ -18,12 +18,14 @@ export default async function EditGamePage({ params, searchParams }: PageProps<"
         gameId={g.id}
         initialStatus={g.status}
         tournaments={tournaments}
+        venues={venues}
         initial={{
           // 「結果を入力」から来たら、最初から「結果あり」にしておく
           status: query.result === "1" ? "completed" : g.status,
           startTime: g.start_time?.slice(0, 5) ?? "",
           meetTime: g.meet_time?.slice(0, 5) ?? "",
           venue: g.venue ?? "",
+          venueMapUrl: g.venue_map_url ?? "",
           uniform: g.uniform ?? "",
           bringBases: g.bring_bases === null ? "" : g.bring_bases ? "need" : "none",
           gameDate: g.game_date,
