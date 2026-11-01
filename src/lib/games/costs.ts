@@ -84,3 +84,25 @@ export function parseCostForm(formData: FormData): { ok: true; values: CostFormV
   if (memo.length > 100) return { ok: false, error: "メモは100文字以内で入れてください。" };
   return { ok: true, values: { item, amount, opponentShare, payer, playerId, memo: memo || null } };
 }
+
+// 試合予定の入力画面でまとめて入れた当日のお金(JSON)を読む。空の行は飛ばす
+export function parseCostRows(json: string): { ok: true; values: CostFormValues[] } | { ok: false; error: string } {
+  let rows: unknown;
+  try {
+    rows = JSON.parse(json || "[]");
+  } catch {
+    return { ok: false, error: "当日のお金の内容が正しくありません。" };
+  }
+  if (!Array.isArray(rows) || rows.length > 10) return { ok: false, error: "当日のお金は10件までです。" };
+  const values: CostFormValues[] = [];
+  for (const [i, row] of rows.entries()) {
+    const r = (row ?? {}) as Record<string, unknown>;
+    if (String(r.amount ?? "").trim() === "") continue;
+    const f = new FormData();
+    for (const k of ["item", "amount", "opponentShare", "payer", "memo"]) f.set(k, String(r[k] ?? ""));
+    const parsed = parseCostForm(f);
+    if (!parsed.ok) return { ok: false, error: `当日のお金 ${i + 1}行目: ${parsed.error}` };
+    values.push(parsed.values);
+  }
+  return { ok: true, values };
+}

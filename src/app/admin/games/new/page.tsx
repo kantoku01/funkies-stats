@@ -15,12 +15,17 @@ export default async function NewGamePage({ searchParams }: PageProps<"/admin/ga
   const dateParam = typeof query.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(query.date) ? query.date : null;
   // 今日の日付を既定値にするので、リクエストごとに描画する
   await connection();
-  const [tournaments, venues] = await Promise.all([getTournamentsForAdmin(), getVenuesForAdmin()]);
+  const supabase = await createClient();
+  const [tournaments, venues, { data: members }] = await Promise.all([
+    getTournamentsForAdmin(),
+    getVenuesForAdmin(),
+    // 当日のお金を立て替える人の候補: 在籍中の選手とマネージャー
+    supabase.from("players").select("id, full_name").in("kind", ["regular", "manager"]).is("left_on", null).order("full_name"),
+  ]);
   // 予定・出欠ページの「試合の予定にする」から来たら、活動予定のメモから開始時間と場所を引き継ぐ
   const fromSchedule = query.from === "schedule" && dateParam !== null;
   let fromNote: { start: string | null; venue: string | null } = { start: null, venue: null };
   if (fromSchedule) {
-    const supabase = await createClient();
     const { data } = await supabase.from("schedule_dates").select("note").eq("day", dateParam).maybeSingle();
     fromNote = parseActivityNote(data?.note ?? null);
   }
@@ -31,6 +36,7 @@ export default async function NewGamePage({ searchParams }: PageProps<"/admin/ga
         action={createGame}
         tournaments={tournaments}
         venues={venues}
+        costMembers={(members ?? []).map((m) => ({ id: m.id, name: m.full_name }))}
         initial={{
           status: "scheduled",
           startTime: fromNote.start ?? "",

@@ -7,6 +7,9 @@ import { getParticipantsForAdmin } from "@/lib/data/games";
 import { STATS_TAG } from "@/lib/data/stats";
 import { parseGameForm, tournamentNameWithYear, type GameFormErrors, type GameFormValues, type TournamentChoice } from "@/lib/games/form";
 import { planParticipants } from "@/lib/games/participants";
+import { LEDGER_TAG } from "@/lib/data/ledger";
+import { parseCostRows } from "@/lib/games/costs";
+import { saveGameCostRecord } from "@/lib/games/costs-server";
 import { parseActivityNote } from "@/lib/schedule/month";
 import { createClient } from "@/lib/supabase/server";
 
@@ -38,6 +41,9 @@ export async function createGame(_prev: GameFormState, formData: FormData): Prom
   const parsed = parseGameForm(formData);
   if (!parsed.ok) return { values: parsed.values, errors: parsed.errors, message: null };
 
+  const costs = parseCostRows(parsed.values.costs ?? "");
+  if (!costs.ok) return { values: parsed.values, errors: {}, message: costs.error };
+
   const tournamentId = await resolveTournament(parsed.tournament, parsed.record.game_date);
   if (tournamentId === "error") return { values: parsed.values, errors: {}, message: "大会の登録に失敗しました。" };
 
@@ -48,6 +54,11 @@ export async function createGame(_prev: GameFormState, formData: FormData): Prom
     .select("id")
     .single();
   if (error || !data) return { values: parsed.values, errors: {}, message: "保存に失敗しました。もう一度お試しください。" };
+
+  // 一緒に入れた当日のお金(払う人が決まっていれば経費にも記録)
+  const game = { id: data.id, game_date: parsed.record.game_date, opponent: parsed.record.opponent };
+  for (const cost of costs.values) await saveGameCostRecord(supabase, game, cost);
+  if (costs.values.length > 0) updateTag(LEDGER_TAG);
 
   // 活動予定から試合の予定にしたら、メモから時間・場所を外す(試合の枠に出るので)。残りのメモ(忘年会など)は残す
   const scheduleDay = String(formData.get("scheduleDay") ?? "");

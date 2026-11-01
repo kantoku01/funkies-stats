@@ -6,6 +6,7 @@ import { defaultMeetTime, resultFromScores, UNIFORM_COLORS, type GameFormValues 
 import type { GameStatus } from "@/types/database";
 import { ROUND_SUGGESTIONS, STAGE_LABEL } from "@/lib/games/type-label";
 import type { GameFormState } from "./actions";
+import { CostRows } from "./cost-rows";
 
 type Props = {
   action: (prev: GameFormState, formData: FormData) => Promise<GameFormState>;
@@ -14,6 +15,7 @@ type Props = {
   initialStatus?: GameStatus; // 編集前の状態(予定 → 終了にしたら参加者登録へ進む)
   tournaments: { id: string; season: number; name: string }[];
   venues: { venue: string; mapUrl: string | null }[]; // これまでの場所(地図の URL を引き継ぐ)
+  costMembers?: { id: string; name: string }[]; // 渡したときだけ、当日のお金もまとめて入れられる(試合の追加)
   cancelHref: string;
   submitLabel: string;
   scheduleDay?: string; // 活動予定から試合の予定にするとき、その日付(保存したらメモの時間・場所を消す)
@@ -44,6 +46,7 @@ function GameFormFields({
   initialStatus,
   tournaments,
   venues,
+  costMembers,
   cancelHref,
   submitLabel,
   state,
@@ -226,6 +229,8 @@ function GameFormFields({
           </div>
         </fieldset>
       </div>
+
+      {costMembers && <CostRows members={costMembers} initial={v.costs} />}
 
       {status === "completed" && (
         <div className="space-y-5 rounded-md border border-brand-200 bg-brand-50/50 p-3">

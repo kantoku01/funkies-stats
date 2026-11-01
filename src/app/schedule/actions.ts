@@ -1,6 +1,7 @@
 "use server";
 
 import { updateTag } from "next/cache";
+import { redirect } from "next/navigation";
 import { getCurrentEditor } from "@/lib/auth";
 import { SCHEDULE_TAG } from "@/lib/data/schedule";
 import { createPublicClient } from "@/lib/supabase/public";
@@ -61,15 +62,19 @@ export async function saveScheduleDate(_prev: ScheduleEditState, formData: FormD
   const kind = String(formData.get("kind") ?? "tbd");
   const note = String(formData.get("note") ?? "").trim();
   const extra = formData.get("extra") === "1";
-  if (!DATE.test(day) || !["practice", "off", "tbd"].includes(kind) || note.length > 100) {
+  if (!DATE.test(day) || !["practice", "off", "tbd", "game"].includes(kind) || note.length > 100) {
     return { message: "入力内容が正しくありません。" };
   }
+  // 「試合」を選んだら、日付とメモを残して試合予定の追加へ(メモの時間・場所を引き継ぐ)
+  // (その日の種類はそのまま。試合の追加をやめても元の予定に戻る)
+  const toGame = kind === "game";
   const supabase = await createClient();
-  const { error } = await supabase
-    .from("schedule_dates")
-    .upsert({ day, kind: kind as "practice" | "off" | "tbd", note: note || null, extra }, { onConflict: "day" });
+  const { data: current } = toGame ? await supabase.from("schedule_dates").select("kind").eq("day", day).maybeSingle() : { data: null };
+  const nextKind = toGame ? (current?.kind ?? "tbd") : (kind as "practice" | "off" | "tbd");
+  const { error } = await supabase.from("schedule_dates").upsert({ day, kind: nextKind, note: note || null, extra }, { onConflict: "day" });
   if (error) return { message: "保存に失敗しました。" };
   updateTag(SCHEDULE_TAG);
+  if (toGame) redirect(`/admin/games/new?date=${day}&from=schedule`);
   return { message: null };
 }
 

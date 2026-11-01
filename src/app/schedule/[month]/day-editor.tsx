@@ -29,9 +29,10 @@ export function DayEditor({
         <form action={action} className="mt-2 space-y-2">
           <input type="hidden" name="day" value={day} />
           <input type="hidden" name="extra" value={extra ? "1" : "0"} />
-          <div className="grid grid-cols-3 gap-1">
+          <div className="grid grid-cols-4 gap-1">
             {(
               [
+                ["game", "試合"],
                 ["practice", "活動予定"],
                 ["off", "休み"],
                 ["tbd", "未定"],
@@ -91,10 +92,17 @@ export function AddDateForm({ first, last }: { first: string; last: string }) {
   return (
     <form action={action} className="flex items-end gap-2 text-sm">
       <input type="hidden" name="extra" value="1" />
-      <input type="hidden" name="kind" value="tbd" />
       <label className="flex-1 space-y-1">
         <span className="text-slate-600">日曜以外の日付を足す(祝日など)</span>
         <input type="date" name="day" min={first} max={last} required className="block min-h-10 w-full rounded-md border border-slate-300 px-2" />
+      </label>
+      <label className="space-y-1">
+        <span className="text-slate-600">種類</span>
+        <select name="kind" defaultValue="tbd" className="block min-h-10 rounded-md border border-slate-300 bg-white px-2">
+          <option value="tbd">未定</option>
+          <option value="practice">活動予定</option>
+          <option value="game">試合</option>
+        </select>
       </label>
       <button type="submit" disabled={pending} className="min-h-10 rounded-md border border-brand-600 px-3 font-bold text-brand-700">
         足す

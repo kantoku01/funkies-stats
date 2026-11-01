@@ -19,6 +19,7 @@ export type GameFormValues = {
   newTournament: string;
   stage: GameStage | "";
   roundLabel: string;
+  costs?: string; // 試合予定の追加でまとめて入れる当日のお金(JSON)。入力エラーで戻るときに残す
 };
 
 export type GameFormErrors = Partial<Record<keyof GameFormValues, string>>;
@@ -137,6 +138,7 @@ export function parseGameForm(formData: FormData): ParsedGameForm {
     newTournament: str("newTournament").replace(/[\s　]+/g, " "),
     stage: str("stage") === "league" || str("stage") === "knockout" ? (str("stage") as GameStage) : "",
     roundLabel: str("roundLabel"),
+    costs: String(formData.get("costs") ?? ""),
   };
   const errors: GameFormErrors = {};
 
