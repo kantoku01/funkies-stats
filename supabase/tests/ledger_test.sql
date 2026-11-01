@@ -38,6 +38,20 @@ select pg_temp.expect_error($$insert into public.ledger_entries (entry_date, kin
 select pg_temp.expect_error($$insert into public.ledger_entries (entry_date, kind, category, amount, settled_on) values ('2026-04-01', 'expense', 'ground', 100, '2026-04-02')$$, '部費から直接なのに精算日');
 select pg_temp.expect_error($$delete from public.players where id = '10000000-0000-0000-0000-000000000001'$$, '入出金のある選手は削除できない');
 
+-- 相手チームへの支払い(経費の種類)
+select pg_temp.expect_ok($$insert into public.ledger_entries (entry_date, kind, category, amount) values ('2026-09-20', 'expense', 'opponent', 3000)$$, '相手チームへの支払い');
+
+-- 試合の当日のお金
+select pg_temp.expect_ok($$insert into public.game_costs (game_id, item, amount, opponent_share) values ('20000000-0000-0000-0000-000000000001', 'umpire', 7000, 5000)$$, '審判代(うち相手チームから)');
+select pg_temp.expect_ok($$insert into public.game_costs (game_id, item, amount, payer, player_id) values ('20000000-0000-0000-0000-000000000001', 'ground', 12000, 'player', '10000000-0000-0000-0000-000000000001')$$, 'グラウンド代(立て替え)');
+select pg_temp.expect_error($$insert into public.game_costs (game_id, item, amount, opponent_share) values ('20000000-0000-0000-0000-000000000001', 'umpire', 7000, 8000)$$, '相手チームからの額が総額より多い');
+select pg_temp.expect_error($$insert into public.game_costs (game_id, item, amount, opponent_share) values ('20000000-0000-0000-0000-000000000001', 'opponent', 3000, 1000)$$, '相手チームへの支払いに相手チームから');
+select pg_temp.expect_error($$insert into public.game_costs (game_id, item, amount, payer) values ('20000000-0000-0000-0000-000000000001', 'ground', 1000, 'player')$$, '立て替えなのに人がいない');
+set role anon;
+select pg_temp.expect_ok($$select * from public.game_costs$$, '匿名: 当日のお金は見られる');
+select pg_temp.expect_error($$insert into public.game_costs (game_id, item, amount) values ('20000000-0000-0000-0000-000000000001', 'ground', 1000)$$, '匿名: 当日のお金は書き込めない');
+reset role;
+
 -- 試合を消しても入出金は残り、紐づけだけ外れる
 delete from public.games where id = '20000000-0000-0000-0000-000000000001';
 do $$ begin

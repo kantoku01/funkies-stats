@@ -1,5 +1,6 @@
 import "server-only";
 import { cacheLife, cacheTag } from "next/cache";
+import type { GameCost } from "@/lib/games/costs";
 import { createPublicClient } from "@/lib/supabase/public";
 import { createClient } from "@/lib/supabase/server";
 import { fetchAll } from "./fetch-all";
@@ -127,4 +128,20 @@ export async function getVenuesForAdmin(): Promise<{ venue: string; mapUrl: stri
     if (!venues.has(r.venue) || (venues.get(r.venue) === null && r.venue_map_url)) venues.set(r.venue, r.venue_map_url);
   }
   return [...venues].map(([venue, mapUrl]) => ({ venue, mapUrl }));
+}
+
+// 試合の当日のお金(誰でも閲覧)
+export async function getGameCosts(gameId: string): Promise<GameCost[]> {
+  "use cache: remote";
+  cacheTag(STATS_TAG);
+  cacheLife("hours");
+
+  const supabase = createPublicClient();
+  const { data, error } = await supabase
+    .from("game_costs")
+    .select("id, item, amount, opponent_share, payer, player_id, memo, ledger_entry_id")
+    .eq("game_id", gameId)
+    .order("created_at");
+  if (error) throw new Error(error.message);
+  return data;
 }

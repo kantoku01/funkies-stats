@@ -305,6 +305,34 @@ export type Database = {
           },
         ];
       };
+      game_costs: {
+        Row: {
+          id: string;
+          game_id: string;
+          item: "ground" | "umpire" | "opponent" | "other";
+          amount: number;
+          opponent_share: number;
+          payer: "undecided" | "club" | "player";
+          player_id: string | null;
+          memo: string | null;
+          ledger_entry_id: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          game_id: string;
+          item: "ground" | "umpire" | "opponent" | "other";
+          amount: number;
+          opponent_share?: number;
+          payer?: "undecided" | "club" | "player";
+          player_id?: string | null;
+          memo?: string | null;
+          ledger_entry_id?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["game_costs"]["Insert"]>;
+        Relationships: [];
+      };
       editors: {
         Row: { user_id: string; display_name: string };
         Insert: { user_id: string; display_name: string };

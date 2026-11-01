@@ -65,3 +65,10 @@ describe("buildLineMessage", () => {
     expect(text).toContain("◆メモ\n雨なら中止");
   });
 });
+
+describe("当日のお金", () => {
+  test("ベースのあとに入る", () => {
+    const text = buildLineMessage(game, members, shortNames(members), ["審判代 7,000円 / 支払い未定", "こちらの負担 合計 7,000円"]);
+    expect(text).toContain("◆ベース\n不要\n\n◆当日のお金\n審判代 7,000円 / 支払い未定\nこちらの負担 合計 7,000円\n\n◆マネージャー");
+  });
+});

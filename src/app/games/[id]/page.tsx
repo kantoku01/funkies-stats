@@ -10,10 +10,14 @@ import { PaChip } from "@/components/pa-chips";
 import { getCurrentEditor } from "@/lib/auth";
 import { battingSummary } from "@/lib/batting/entry";
 import { getGameDetail, type GameDetail } from "@/lib/data/detail";
+import { getGameCosts } from "@/lib/data/games";
 import { getScheduleMonth } from "@/lib/data/schedule";
 import { formatGameDate } from "@/lib/format";
+import { costLines, costText, ourShare, payerText } from "@/lib/games/costs";
 import { buildLineMessage, shortNames } from "@/lib/games/line-message";
+import { formatYen } from "@/lib/ledger/categories";
 import { ANSWER_MARK, countsAsAttending, parseMonth } from "@/lib/schedule/month";
+import { AddCost, CostRowEditor } from "./cost-editor";
 import { LineMessageForm } from "./line-message-form";
 
 export const metadata: Metadata = { title: "試合詳細" };
@@ -79,6 +83,9 @@ async function GameDetailView({ params }: { params: PageProps<"/games/[id]">["pa
         </EditorOnly>
       )}
       <GameScheduleInfo info={g.schedule} className="rounded-md border border-slate-200 bg-white p-3" />
+      <Suspense fallback={null}>
+        <GameCosts game={g} />
+      </Suspense>
       {g.memo && <p className="whitespace-pre-wrap text-sm text-slate-600">{g.memo}</p>}
 
       {g.status === "scheduled" ? (
@@ -199,6 +206,8 @@ async function GameAttendance({ game: g }: { game: GameDetail }) {
   const yesPlayers = yes.filter((m) => m.kind === "regular").length;
 
   // 試合前日の LINE の文面(○と△の人。名前は名字だけ、同じ名字はチーム全員で見分ける)
+  const costs = await getGameCosts(g.id);
+  const names = shortNames(members.map((m) => ({ id: m.id, fullName: m.name })));
   const message = buildLineMessage(
     {
       ...g.typeInfo,
@@ -215,7 +224,8 @@ async function GameAttendance({ game: g }: { game: GameDetail }) {
     active
       .filter((m) => countsAsAttending(answerOf(m.id)?.answer))
       .map((m) => ({ id: m.id, fullName: m.name, kind: m.kind, carpool: m.carpool })),
-    shortNames(members.map((m) => ({ id: m.id, fullName: m.name }))),
+    names,
+    costLines(costs, (id) => names.get(id) ?? null),
   );
 
   return (
@@ -260,5 +270,44 @@ async function GameAttendance({ game: g }: { game: GameDetail }) {
         <LineMessageForm key={message} initial={message} />
       </EditorOnly>
     </>
+  );
+}
+
+// 当日のお金(誰でも見られる)。編集者はここで足す・直す・払う人を決める
+async function GameCosts({ game: g }: { game: GameDetail }) {
+  const [costs, { members }] = await Promise.all([getGameCosts(g.id), getScheduleMonth(parseMonth(g.gameDate.slice(0, 7))!)]);
+  const active = members
+    .filter((m) => m.joinedOn <= g.gameDate && (m.leftOn === null || m.leftOn >= g.gameDate))
+    .map((m) => ({ id: m.id, name: m.name }));
+  const nameOf = (id: string | null) => (id ? (members.find((m) => m.id === id)?.name ?? null) : null);
+  const total = costs.reduce((s, c) => s + ourShare(c), 0);
+  if (costs.length === 0) {
+    return (
+      <EditorOnly>
+        <AddCost gameId={g.id} members={active} />
+      </EditorOnly>
+    );
+  }
+  return (
+    <div className="space-y-2 rounded-md border border-slate-200 bg-white p-3">
+      <h2 className="font-bold">当日のお金</h2>
+      <ul className="divide-y divide-slate-100">
+        {costs.map((c) => (
+          <li key={c.id} className="py-2">
+            <div className="flex flex-wrap items-baseline justify-between gap-x-3">
+              <span className="font-medium">{costText(c)}</span>
+              <span className={`text-sm ${c.payer === "undecided" ? "text-amber-700" : "text-slate-600"}`}>{payerText(c, nameOf(c.player_id))}</span>
+            </div>
+            <EditorOnly>
+              <CostRowEditor gameId={g.id} members={active} cost={c} />
+            </EditorOnly>
+          </li>
+        ))}
+      </ul>
+      <p className="text-right text-sm font-bold">こちらの負担 合計 {formatYen(total)}</p>
+      <EditorOnly>
+        <AddCost gameId={g.id} members={active} />
+      </EditorOnly>
+    </div>
   );
 }

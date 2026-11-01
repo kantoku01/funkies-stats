@@ -46,7 +46,13 @@ function endTime(start: string): string {
 }
 
 // members は背番号順など並べたい順で渡す。names は shortNames の結果(チーム全員から作ると、名字の重なりが試合ごとに変わらない)
-export function buildLineMessage(g: LineMessageGame, members: LineMessageMember[], names: Map<string, string>): string {
+// money は当日のお金の行(costLines の結果。なければ空)
+export function buildLineMessage(
+  g: LineMessageGame,
+  members: LineMessageMember[],
+  names: Map<string, string>,
+  money: string[] = [],
+): string {
   const name = (m: LineMessageMember) => names.get(m.id) ?? m.fullName;
   const title = [formatGameDate(g.game_date), gameTypeLabel(g), `vs ${g.opponent ?? "相手未定"}`].join(" ");
 
@@ -68,6 +74,7 @@ export function buildLineMessage(g: LineMessageGame, members: LineMessageMember[
     ["◆スケジュール", ...schedule],
     ["◆ユニフォーム", g.uniform ?? "未定"],
     ["◆ベース", g.bring_bases === null ? "未定" : g.bring_bases ? "必要" : "不要"],
+    ...(money.length > 0 ? [["◆当日のお金", ...money]] : []),
     ["◆マネージャー", managers.length > 0 ? managers.join("、") : "無し"],
     ["◆配車", carpool.join("\n\n")],
     ...(g.memo ? [["◆メモ", g.memo]] : []),
