@@ -40,14 +40,14 @@ export function summarizeLedger(entries: LedgerEntry[], season: number): LedgerS
     if (isPendingAdvance(e)) pendingMap.set(e.player_id!, [...(pendingMap.get(e.player_id!) ?? []), e]);
   }
 
-  // 未精算の立て替えは日付が近い順(新しい順)。人も、いちばん新しい立て替えの日付が近い順
+  // 未精算の立て替えは日付の早い順
   const pending = [...pendingMap.entries()]
     .map(([playerId, list]) => ({
       playerId,
       total: list.reduce((s, e) => s + e.amount, 0),
-      entries: list.sort((a, b) => b.entry_date.localeCompare(a.entry_date)),
+      entries: list.sort((a, b) => a.entry_date.localeCompare(b.entry_date)),
     }))
-    .sort((a, b) => b.entries[0].entry_date.localeCompare(a.entries[0].entry_date) || b.total - a.total);
+    .sort((a, b) => a.entries[0].entry_date.localeCompare(b.entries[0].entry_date) || b.total - a.total);
 
   const inSeason = entries.filter((e) => e.season === season);
   const cat = new Map<string, { kind: LedgerKind; category: LedgerCategory; total: number }>();

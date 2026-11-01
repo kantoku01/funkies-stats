@@ -78,11 +78,11 @@ async function ExpensesView({ searchParams }: { searchParams: PageProps<"/expens
         {summary.pending.length === 0 ? (
           <p className="text-sm text-slate-500">ありません。</p>
         ) : (
-          // 同じ人の立て替えもまとめずに、1件ずつ日付が近い順に並べる
+          // 同じ人の立て替えもまとめずに、1件ずつ日付の早い順に並べる
           <ul className="divide-y divide-amber-100 rounded-md border border-amber-200 bg-white text-sm">
             {summary.pending
               .flatMap((p) => p.entries)
-              .sort((a, b) => b.entry_date.localeCompare(a.entry_date))
+              .sort((a, b) => a.entry_date.localeCompare(b.entry_date))
               .map((e) => (
                 <li key={e.id} className="flex items-center gap-2 px-3 py-2">
                   <span className="w-12 shrink-0 tabular-nums text-slate-500">{formatGameDate(e.entry_date, false)}</span>
