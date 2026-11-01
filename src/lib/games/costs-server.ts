@@ -1,5 +1,5 @@
 import "server-only";
-import { COST_ITEM_LABEL, costLedgerCategory, ourShare, type CostFormValues } from "@/lib/games/costs";
+import { COST_ITEM_LABEL, costLedgerCategory, ourShare, type CostFormValues, type CostItem } from "@/lib/games/costs";
 import { formatYen } from "@/lib/ledger/categories";
 import type { createClient } from "@/lib/supabase/server";
 
@@ -67,4 +67,55 @@ export async function saveGameCostRecord(supabase: Supabase, game: Game, v: Cost
   };
   const { error } = id ? await supabase.from("game_costs").update(row).eq("id", id) : await supabase.from("game_costs").insert(row);
   return error ? "保存に失敗しました。" : null;
+}
+
+// 経費の種類から当日のお金の項目へ(グラウンド・審判代は「グラウンド代＋審判代」)
+function itemFromCategory(category: string): CostItem {
+  return category === "ground" ? "ground_umpire" : category === "opponent" ? "opponent" : "other";
+}
+
+type LedgerSide = { id: string; kind: "income" | "expense"; category: string; amount: number; player_id: string | null; game_id: string | null };
+
+// 経費の画面で入れた・直した記録を、試合の当日のお金にも反映する。
+// 試合に紐づいた支出なら当日のお金を作る・直す(金額は こちらの負担 + 相手チームの分)。
+// 試合から外れた・支出でなくなったら、当日のお金は「払う人未定」に戻す
+export async function syncGameCostFromLedger(supabase: Supabase, entry: LedgerSide): Promise<void> {
+  const { data: cost } = await supabase
+    .from("game_costs")
+    .select("id, game_id, item, opponent_share")
+    .eq("ledger_entry_id", entry.id)
+    .maybeSingle();
+  const linked = entry.kind === "expense" && entry.game_id !== null;
+  if (cost && (!linked || cost.game_id !== entry.game_id)) {
+    await detachGameCostFromLedger(supabase, entry.id);
+  }
+  if (!linked) return;
+
+  const sameGame = cost && cost.game_id === entry.game_id;
+  const item = sameGame && costLedgerCategory(cost.item) === entry.category ? cost.item : itemFromCategory(entry.category);
+  const share = sameGame && item !== "opponent" ? cost.opponent_share : 0;
+  const row = {
+    game_id: entry.game_id!,
+    item,
+    amount: entry.amount + share,
+    opponent_share: share,
+    payer: entry.player_id ? ("player" as const) : ("club" as const),
+    player_id: entry.player_id,
+    ledger_entry_id: entry.id,
+  };
+  if (sameGame) await supabase.from("game_costs").update(row).eq("id", cost.id);
+  else await supabase.from("game_costs").insert(row);
+}
+
+// 経費の記録が試合から外れたとき: 紐づいた当日のお金は残し、払う人を「未定」に戻す
+export async function detachGameCostFromLedger(supabase: Supabase, ledgerEntryId: string): Promise<void> {
+  await supabase
+    .from("game_costs")
+    .update({ ledger_entry_id: null, payer: "undecided", player_id: null })
+    .eq("ledger_entry_id", ledgerEntryId);
+}
+
+// 経費の記録を消すとき: 紐づいた当日のお金も消す
+export async function deleteGameCostOfLedger(supabase: Supabase, ledgerEntryId: string): Promise<void> {
+  await supabase.from("game_costs").delete().eq("ledger_entry_id", ledgerEntryId);
 }

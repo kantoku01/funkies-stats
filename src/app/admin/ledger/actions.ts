@@ -4,6 +4,8 @@ import { updateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { getCurrentEditor } from "@/lib/auth";
 import { LEDGER_TAG } from "@/lib/data/ledger";
+import { STATS_TAG } from "@/lib/data/stats";
+import { deleteGameCostOfLedger, syncGameCostFromLedger } from "@/lib/games/costs-server";
 import { parseLedgerForm, type LedgerFormErrors, type LedgerFormValues } from "@/lib/ledger/form";
 import { todayInJapan } from "@/lib/season";
 import { createClient } from "@/lib/supabase/server";
@@ -25,10 +27,13 @@ export async function createLedgerEntry(_prev: LedgerFormState, formData: FormDa
   if (!parsed.ok) return { values: parsed.values, errors: parsed.errors, message: null };
 
   const supabase = await createClient();
-  const { error } = await supabase.from("ledger_entries").insert(parsed.record);
-  if (error) return { values: parsed.values, errors: {}, message: "保存に失敗しました。もう一度お試しください。" };
+  const { data, error } = await supabase.from("ledger_entries").insert(parsed.record).select("id").single();
+  if (error || !data) return { values: parsed.values, errors: {}, message: "保存に失敗しました。もう一度お試しください。" };
+  // 試合に紐づいた支出は、その試合の当日のお金にも出す
+  await syncGameCostFromLedger(supabase, { id: data.id, ...parsed.record });
 
   updateTag(LEDGER_TAG);
+  updateTag(STATS_TAG);
   redirect(`/expenses?season=${seasonOf(parsed.record.entry_date)}`);
 }
 
@@ -42,8 +47,11 @@ export async function updateLedgerEntry(_prev: LedgerFormState, formData: FormDa
   const supabase = await createClient();
   const { error } = await supabase.from("ledger_entries").update(parsed.record).eq("id", id);
   if (error) return { values: parsed.values, errors: {}, message: "保存に失敗しました。もう一度お試しください。" };
+  // 試合の当日のお金とつながっていれば、そちらも直す
+  await syncGameCostFromLedger(supabase, { id, ...parsed.record });
 
   updateTag(LEDGER_TAG);
+  updateTag(STATS_TAG);
   redirect(`/expenses?season=${seasonOf(parsed.record.entry_date)}`);
 }
 
@@ -55,10 +63,12 @@ export async function deleteLedgerEntry(_prev: LedgerActionState, formData: Form
   if (!UUID.test(id)) return { message: "記録が見つかりません。" };
 
   const supabase = await createClient();
+  await deleteGameCostOfLedger(supabase, id);
   const { data, error } = await supabase.from("ledger_entries").delete().eq("id", id).select("season");
   if (error || !data?.length) return { message: "削除に失敗しました。" };
 
   updateTag(LEDGER_TAG);
+  updateTag(STATS_TAG);
   redirect(`/expenses?season=${data[0].season}`);
 }
 
