@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import { COST_ITEM_LABEL, type CostItem, type GameCost } from "@/lib/games/costs";
+import { COST_ITEM_CHOICES, COST_ITEM_LABEL, type CostItem, type GameCost } from "@/lib/games/costs";
 import { deleteGameCost, saveGameCost, type CostState } from "./cost-actions";
 
 type Member = { id: string; name: string };
@@ -24,7 +24,7 @@ function CostForm({ gameId, members, cost, onDone }: { gameId: string; members: 
         <label className="space-y-1">
           <span className="text-slate-600">項目</span>
           <select name="item" value={item} onChange={(e) => setItem(e.target.value as CostItem)} className={input}>
-            {(Object.keys(COST_ITEM_LABEL) as CostItem[]).map((k) => (
+            {(cost?.item === "other" ? [...COST_ITEM_CHOICES, "other" as const] : COST_ITEM_CHOICES).map((k) => (
               <option key={k} value={k}>
                 {COST_ITEM_LABEL[k]}
               </option>

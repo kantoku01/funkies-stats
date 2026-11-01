@@ -43,3 +43,11 @@ describe("当日のお金", () => {
     expect(parseCostForm(fd({ item: "umpire", amount: "7000", opponentShare: "8000" })).ok).toBe(false);
   });
 });
+
+describe("項目", () => {
+  test("グラウンド代＋審判代は経費のグラウンド・審判代", async () => {
+    const { costLedgerCategory, COST_ITEM_CHOICES } = await import("./costs");
+    expect(costLedgerCategory("ground_umpire")).toBe("ground");
+    expect(COST_ITEM_CHOICES).toEqual(["ground", "umpire", "ground_umpire", "opponent"]);
+  });
+});

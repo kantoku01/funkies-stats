@@ -2,15 +2,17 @@ import { formatYen } from "@/lib/ledger/categories";
 
 // 試合の当日のお金。相手チームから受け取るお金は、支払いの「うち相手チームから」として合算する
 
-export type CostItem = "ground" | "umpire" | "opponent" | "other";
+export type CostItem = "ground" | "umpire" | "ground_umpire" | "opponent" | "other";
 export type CostPayer = "undecided" | "club" | "player";
 
 export const COST_ITEM_LABEL: Record<CostItem, string> = {
   ground: "グラウンド代",
   umpire: "審判代",
+  ground_umpire: "グラウンド代＋審判代",
   opponent: "相手チームへ",
-  other: "その他",
+  other: "その他", // 前に入れた分の表示用。新しくは選ばせない
 };
+export const COST_ITEM_CHOICES: CostItem[] = ["ground", "umpire", "ground_umpire", "opponent"];
 
 export type GameCost = {
   id: string;
@@ -62,7 +64,7 @@ const toInt = (s: string) => Number(s.replace(/[０-９]/g, (c) => String.fromCh
 export function parseCostForm(formData: FormData): { ok: true; values: CostFormValues } | { ok: false; error: string } {
   const str = (k: string) => String(formData.get(k) ?? "").trim();
   const item = str("item") as CostItem;
-  if (!(item in COST_ITEM_LABEL)) return { ok: false, error: "項目を選んでください。" };
+  if (!COST_ITEM_CHOICES.includes(item) && item !== "other") return { ok: false, error: "項目を選んでください。" };
   const amount = toInt(str("amount"));
   if (!Number.isInteger(amount) || amount < 1 || amount > 10_000_000) return { ok: false, error: "金額を数字で入れてください。" };
   const shareRaw = str("opponentShare");

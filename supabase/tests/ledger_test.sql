@@ -47,6 +47,8 @@ select pg_temp.expect_ok($$insert into public.game_costs (game_id, item, amount,
 select pg_temp.expect_error($$insert into public.game_costs (game_id, item, amount, opponent_share) values ('20000000-0000-0000-0000-000000000001', 'umpire', 7000, 8000)$$, '相手チームからの額が総額より多い');
 select pg_temp.expect_error($$insert into public.game_costs (game_id, item, amount, opponent_share) values ('20000000-0000-0000-0000-000000000001', 'opponent', 3000, 1000)$$, '相手チームへの支払いに相手チームから');
 select pg_temp.expect_error($$insert into public.game_costs (game_id, item, amount, payer) values ('20000000-0000-0000-0000-000000000001', 'ground', 1000, 'player')$$, '立て替えなのに人がいない');
+select pg_temp.expect_ok($$insert into public.game_costs (game_id, item, amount) values ('20000000-0000-0000-0000-000000000001', 'ground_umpire', 11000)$$, 'グラウンド代＋審判代');
+select pg_temp.expect_error($$insert into public.game_costs (game_id, item, amount) values ('20000000-0000-0000-0000-000000000001', 'food', 1000)$$, '当日のお金にない項目');
 set role anon;
 select pg_temp.expect_ok($$select * from public.game_costs$$, '匿名: 当日のお金は見られる');
 select pg_temp.expect_error($$insert into public.game_costs (game_id, item, amount) values ('20000000-0000-0000-0000-000000000001', 'ground', 1000)$$, '匿名: 当日のお金は書き込めない');

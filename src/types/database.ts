@@ -309,7 +309,7 @@ export type Database = {
         Row: {
           id: string;
           game_id: string;
-          item: "ground" | "umpire" | "opponent" | "other";
+          item: "ground" | "umpire" | "ground_umpire" | "opponent" | "other";
           amount: number;
           opponent_share: number;
           payer: "undecided" | "club" | "player";
@@ -321,7 +321,7 @@ export type Database = {
         Insert: {
           id?: string;
           game_id: string;
-          item: "ground" | "umpire" | "opponent" | "other";
+          item: "ground" | "umpire" | "ground_umpire" | "opponent" | "other";
           amount: number;
           opponent_share?: number;
           payer?: "undecided" | "club" | "player";
