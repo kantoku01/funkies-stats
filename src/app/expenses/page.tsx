@@ -78,30 +78,27 @@ async function ExpensesView({ searchParams }: { searchParams: PageProps<"/expens
         {summary.pending.length === 0 ? (
           <p className="text-sm text-slate-500">ありません。</p>
         ) : (
-          <ul className="space-y-2">
-            {summary.pending.map((p) => (
-              <li key={p.playerId} className="rounded-md border border-amber-200 bg-amber-50">
-                <div className="flex items-center justify-between px-3 py-2">
-                  <span className="font-bold">{nameOf.get(p.playerId) ?? "(不明)"} さん</span>
-                  <span className="font-bold tabular-nums">{formatYen(p.total)}</span>
-                </div>
-                <ul className="divide-y divide-amber-100 border-t border-amber-100 bg-white text-sm">
-                  {p.entries.map((e) => (
-                    <li key={e.id} className="flex items-center gap-2 px-3 py-2">
-                      <span className="tabular-nums text-slate-500">{formatGameDate(e.entry_date, false)}</span>
-                      <span className="min-w-0 flex-1 truncate">
-                        {CATEGORY_LABEL[e.category]}
-                        {e.memo && <span className="text-slate-500"> {e.memo}</span>}
-                      </span>
-                      <span className="tabular-nums">{formatYen(e.amount)}</span>
-                      <EditorOnly>
-                        <SettleButton entryId={e.id} label={`${nameOf.get(p.playerId)}さんの立て替え ${formatYen(e.amount)}`} />
-                      </EditorOnly>
-                    </li>
-                  ))}
-                </ul>
-              </li>
-            ))}
+          // 同じ人の立て替えもまとめずに、1件ずつ日付が近い順に並べる
+          <ul className="divide-y divide-amber-100 rounded-md border border-amber-200 bg-white text-sm">
+            {summary.pending
+              .flatMap((p) => p.entries)
+              .sort((a, b) => b.entry_date.localeCompare(a.entry_date))
+              .map((e) => (
+                <li key={e.id} className="flex items-center gap-2 px-3 py-2">
+                  <span className="w-12 shrink-0 tabular-nums text-slate-500">{formatGameDate(e.entry_date, false)}</span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block font-bold">{nameOf.get(e.player_id!) ?? "(不明)"} さん</span>
+                    <span className="block truncate">
+                      {CATEGORY_LABEL[e.category]}
+                      {e.memo && <span className="text-slate-500"> {e.memo}</span>}
+                    </span>
+                  </span>
+                  <span className="font-bold tabular-nums">{formatYen(e.amount)}</span>
+                  <EditorOnly>
+                    <SettleButton entryId={e.id} label={`${nameOf.get(e.player_id!)}さんの立て替え ${formatYen(e.amount)}`} />
+                  </EditorOnly>
+                </li>
+              ))}
           </ul>
         )}
       </section>
