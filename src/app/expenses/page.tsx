@@ -3,7 +3,7 @@ import Link from "next/link";
 import { connection } from "next/server";
 import { Suspense } from "react";
 import { EditorOnly } from "@/components/editor-only";
-import { SettleButton } from "@/components/ledger/settle-button";
+import { SettleButton, UnsettleButton } from "@/components/ledger/settle-button";
 import { SeasonTabs } from "@/components/season-tabs";
 import { getCurrentEditor } from "@/lib/auth";
 import { getLedger, type LedgerData } from "@/lib/data/ledger";
@@ -48,6 +48,11 @@ async function ExpensesView({ searchParams }: { searchParams: PageProps<"/expens
   ];
   const paidCount = duesRows.filter((r) => summary.season.dues.has(r.id)).length;
   const seasonEntries = data.entries.filter((e) => e.season === season);
+  // 精算した日が新しい順に5件
+  const recentlySettled = data.entries
+    .filter((e) => e.kind === "expense" && e.player_id && e.settled_on)
+    .sort((a, b) => b.settled_on!.localeCompare(a.settled_on!) || b.entry_date.localeCompare(a.entry_date))
+    .slice(0, 5);
 
   return (
     <div className="space-y-6">
@@ -107,6 +112,37 @@ async function ExpensesView({ searchParams }: { searchParams: PageProps<"/expens
           </ul>
         )}
       </section>
+
+      {/* 最近精算した立て替え(間違えて精算済みにしたら、ここから戻す・直す) */}
+      {recentlySettled.length > 0 && (
+        <section className="space-y-2">
+          <h2 className="font-bold">最近精算した立て替え</h2>
+          <ul className="divide-y divide-slate-100 rounded-md border border-slate-200 bg-white text-sm">
+            {recentlySettled.map((e) => (
+              <li key={e.id} className="flex items-center gap-2 px-3 py-2">
+                <span className="w-12 shrink-0 tabular-nums text-slate-500">{formatGameDate(e.entry_date, false)}</span>
+                <span className="min-w-0 flex-1">
+                  <span className="block font-bold">{nameOf.get(e.player_id!) ?? "(不明)"} さん</span>
+                  <span className="block truncate">
+                    {CATEGORY_LABEL[e.category]}
+                    {e.memo && <span className="text-slate-500"> {e.memo}</span>}
+                  </span>
+                  <span className="block text-xs text-slate-500">{formatGameDate(e.settled_on!, false)} 精算</span>
+                </span>
+                <span className="font-bold tabular-nums">{formatYen(e.amount)}</span>
+                <EditorOnly>
+                  <div className="flex shrink-0 flex-col items-end gap-1">
+                    <UnsettleButton entryId={e.id} label={`${nameOf.get(e.player_id!)}さんの立て替え ${formatYen(e.amount)}`} />
+                    <Link href={`/admin/ledger/${e.id}`} className="text-xs text-brand-700">
+                      直す ›
+                    </Link>
+                  </div>
+                </EditorOnly>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       <SeasonTabs seasons={seasons} current={season} href={(s) => `/expenses?season=${s}`} />
 

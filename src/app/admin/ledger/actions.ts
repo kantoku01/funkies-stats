@@ -92,3 +92,22 @@ export async function settleAdvance(_prev: LedgerActionState, formData: FormData
   updateTag(LEDGER_TAG);
   return { message: null };
 }
+
+// 間違えて精算済みにした立て替えを、未精算に戻す
+export async function unsettleAdvance(_prev: LedgerActionState, formData: FormData): Promise<LedgerActionState> {
+  const id = String(formData.get("id") ?? "");
+  await requireEditor("/expenses");
+  if (!UUID.test(id)) return { message: "記録が見つかりません。" };
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("ledger_entries")
+    .update({ settled_on: null })
+    .eq("id", id)
+    .not("settled_on", "is", null)
+    .select("id");
+  if (error || !data?.length) return { message: "戻せませんでした。画面を開き直してください。" };
+
+  updateTag(LEDGER_TAG);
+  return { message: null };
+}
