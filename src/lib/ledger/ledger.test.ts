@@ -36,11 +36,11 @@ describe("summarizeLedger", () => {
     expect(s.balance).toBe(71000);
   });
 
-  test("未精算の立て替え(人ごと、多い順)", () => {
+  test("未精算の立て替え(人ごと、日付が近い順)", () => {
     expect(s.pendingTotal).toBe(10000);
     expect(s.pending.map((p) => [p.playerId, p.total])).toEqual([
-      [B, 6000],
-      [A, 4000],
+      [A, 4000], // 6/1
+      [B, 6000], // 4/1
     ]);
   });
 
