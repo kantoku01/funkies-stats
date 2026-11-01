@@ -95,7 +95,12 @@ async function ExpensesView({ searchParams }: { searchParams: PageProps<"/expens
                   </span>
                   <span className="font-bold tabular-nums">{formatYen(e.amount)}</span>
                   <EditorOnly>
-                    <SettleButton entryId={e.id} label={`${nameOf.get(e.player_id!)}さんの立て替え ${formatYen(e.amount)}`} />
+                    <div className="flex shrink-0 flex-col items-end gap-1">
+                      <SettleButton entryId={e.id} label={`${nameOf.get(e.player_id!)}さんの立て替え ${formatYen(e.amount)}`} />
+                      <Link href={`/admin/ledger/${e.id}`} className="text-xs text-brand-700">
+                        直す ›
+                      </Link>
+                    </div>
                   </EditorOnly>
                 </li>
               ))}
