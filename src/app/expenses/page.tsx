@@ -35,18 +35,6 @@ async function ExpensesView({ searchParams }: { searchParams: PageProps<"/expens
   const nameOf = new Map(data.players.map((p) => [p.id, p.full_name]));
   const gameOf = new Map(data.games.map((g) => [g.id, g]));
 
-  // 年会費: そのシーズンに在籍していた正規メンバー + 納入記録のある人(マネージャーは年会費なし)
-  const enrolled = data.players.filter(
-    (p) =>
-      p.kind === "regular" &&
-      (p.joined_on ?? "") <= `${season}-12-31` &&
-      (p.left_on === null || p.left_on >= `${season}-01-01`),
-  );
-  const duesRows = [
-    ...enrolled.map((p) => ({ id: p.id, name: p.full_name })),
-    ...[...summary.season.dues.keys()].filter((id) => !enrolled.some((p) => p.id === id)).map((id) => ({ id, name: nameOf.get(id) ?? "(不明)" })),
-  ];
-  const paidCount = duesRows.filter((r) => summary.season.dues.has(r.id)).length;
   const seasonEntries = data.entries.filter((e) => e.season === season);
   // 精算した日が新しい順に5件
   const recentlySettled = data.entries
@@ -177,29 +165,6 @@ async function ExpensesView({ searchParams }: { searchParams: PageProps<"/expens
           </ul>
         )}
         <p className="text-xs text-slate-500">支出には、まだ精算していない立て替えも含みます。</p>
-      </section>
-
-      {/* 年会費 */}
-      <section className="space-y-2">
-        <h2 className="font-bold">
-          {season}年の年会費 <span className="text-sm font-normal text-slate-500">(納入 {paidCount}/{duesRows.length}人)</span>
-        </h2>
-        <ul className="grid grid-cols-2 gap-1.5 text-sm">
-          {duesRows.map((r) => {
-            const paid = summary.season.dues.get(r.id);
-            return (
-              <li
-                key={r.id}
-                className={`flex items-center justify-between rounded-md border px-2 py-2 ${paid ? "border-emerald-200 bg-emerald-50" : "border-slate-200 bg-white"}`}
-              >
-                <span className="truncate">{r.name}</span>
-                <span className={`shrink-0 tabular-nums ${paid ? "font-bold text-emerald-800" : "text-slate-400"}`}>
-                  {paid ? formatYen(paid) : "未納"}
-                </span>
-              </li>
-            );
-          })}
-        </ul>
       </section>
 
       {/* 入出金の一覧 */}
