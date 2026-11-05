@@ -56,7 +56,9 @@ describe("parseCostRows", () => {
   test("空の行は飛ばし、間違いは何行目かを返す", async () => {
     const { parseCostRows } = await import("./costs");
     const ok = parseCostRows(JSON.stringify([{ item: "ground_umpire", amount: "11000", opponentShare: "5500", payer: "" }, { item: "ground", amount: "" }]));
-    expect(ok.ok && ok.values).toEqual([{ item: "ground_umpire", amount: 11000, opponentShare: 5500, payer: "undecided", playerId: null, memo: null }]);
+    expect(ok.ok && ok.values).toEqual([
+      { item: "ground_umpire", amount: 11000, opponentShare: 5500, payer: "undecided", playerId: null, memo: null, id: null },
+    ]);
     const ng = parseCostRows(JSON.stringify([{ item: "ground", amount: "abc" }]));
     expect(ng.ok || ng.error).toBe("当日のお金 1行目: 金額を数字で入れてください。");
   });

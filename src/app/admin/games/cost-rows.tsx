@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { COST_ITEM_CHOICES, COST_ITEM_LABEL, type CostItem } from "@/lib/games/costs";
 
-type Row = { item: CostItem; amount: string; opponentShare: string; payer: string; memo: string };
+// id は今ある行(試合の編集で直すとき)。新しい行にはない
+type Row = { id?: string; item: CostItem; amount: string; opponentShare: string; payer: string; memo: string };
 const blank = (): Row => ({ item: "ground_umpire", amount: "", opponentShare: "", payer: "", memo: "" });
 const input = "block min-h-11 w-full rounded-md border border-slate-300 bg-white px-3 text-base";
 
@@ -16,7 +17,7 @@ function initialRows(json: string | undefined): Row[] {
   }
 }
 
-// 試合予定の追加で、当日のお金もまとめて入れる(任意)。送るときは JSON にして costs に入れる
+// 試合の追加・編集で、当日のお金もまとめて入れる(任意)。送るときは JSON にして costs に入れる
 export function CostRows({ members, initial }: { members: { id: string; name: string }[]; initial?: string }) {
   const [rows, setRows] = useState<Row[]>(() => initialRows(initial));
   const set = (i: number, patch: Partial<Row>) => setRows((rs) => rs.map((r, j) => (j === i ? { ...r, ...patch } : r)));
@@ -31,7 +32,7 @@ export function CostRows({ members, initial }: { members: { id: string; name: st
             <label className="space-y-1">
               <span className="text-slate-600">項目</span>
               <select aria-label="項目" value={r.item} onChange={(e) => set(i, { item: e.target.value as CostItem })} className={input}>
-                {COST_ITEM_CHOICES.map((k) => (
+                {(COST_ITEM_CHOICES.includes(r.item) ? COST_ITEM_CHOICES : [...COST_ITEM_CHOICES, r.item]).map((k) => (
                   <option key={k} value={k}>
                     {COST_ITEM_LABEL[k]}
                   </option>
@@ -80,7 +81,7 @@ export function CostRows({ members, initial }: { members: { id: string; name: st
       >
         ＋ 当日のお金を追加
       </button>
-      <p className="text-xs text-slate-500">あとから試合の画面でも足したり直したりできます。</p>
+      <p className="text-xs text-slate-500">払う人を決めると、こちらの負担分が経費に記録されます。消した行は経費の記録も消えます。</p>
     </fieldset>
   );
 }

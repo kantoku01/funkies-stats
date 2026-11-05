@@ -9,7 +9,7 @@ import { parseGameForm, tournamentNameWithYear, type GameFormErrors, type GameFo
 import { planParticipants } from "@/lib/games/participants";
 import { LEDGER_TAG } from "@/lib/data/ledger";
 import { parseCostRows } from "@/lib/games/costs";
-import { saveGameCostRecord } from "@/lib/games/costs-server";
+import { SETTLED_MESSAGE, saveGameCostRecord } from "@/lib/games/costs-server";
 import { parseActivityNote } from "@/lib/schedule/month";
 import { createClient } from "@/lib/supabase/server";
 
@@ -58,6 +58,7 @@ export async function createGame(_prev: GameFormState, formData: FormData): Prom
   // 一緒に入れた当日のお金(払う人が決まっていれば経費にも記録)
   const game = { id: data.id, game_date: parsed.record.game_date, opponent: parsed.record.opponent };
   for (const cost of costs.values) await saveGameCostRecord(supabase, game, cost);
+
   if (costs.values.length > 0) updateTag(LEDGER_TAG);
 
   // 活動予定から試合の予定にしたら、メモから時間・場所を外す(試合の枠に出るので)。残りのメモ(忘年会など)は残す
@@ -80,17 +81,39 @@ export async function updateGame(_prev: GameFormState, formData: FormData): Prom
   if (!parsed.ok) return { values: parsed.values, errors: parsed.errors, message: null };
   if (!UUID.test(id)) return { values: parsed.values, errors: {}, message: "試合が見つかりません。" };
 
+  // 当日のお金(同じ画面で直す)。消す行に精算済みの立て替えがあれば、先に止める
+  const costs = parseCostRows(parsed.values.costs ?? "");
+  if (!costs.ok) return { values: parsed.values, errors: {}, message: costs.error };
+  const supabase = await createClient();
+  const { data: existing } = await supabase.from("game_costs").select("id, ledger_entry_id").eq("game_id", id);
+  const kept = new Set(costs.values.map((c) => c.id).filter(Boolean));
+  const removed = (existing ?? []).filter((c) => !kept.has(c.id));
+  const removedLedger = removed.map((c) => c.ledger_entry_id).filter((x): x is string => x !== null);
+  if (removedLedger.length > 0) {
+    const { data: settled } = await supabase.from("ledger_entries").select("id").in("id", removedLedger).not("settled_on", "is", null);
+    if (settled?.length) return { values: parsed.values, errors: {}, message: `消した当日のお金に${SETTLED_MESSAGE}` };
+  }
+
   const tournamentId = await resolveTournament(parsed.tournament, parsed.record.game_date);
   if (tournamentId === "error") return { values: parsed.values, errors: {}, message: "大会の登録に失敗しました。" };
 
-  const supabase = await createClient();
   const { error } = await supabase
     .from("games")
     .update({ ...parsed.record, tournament_id: tournamentId })
     .eq("id", id);
   if (error) return { values: parsed.values, errors: {}, message: "保存に失敗しました。もう一度お試しください。" };
 
+  // 消した行は経費の記録も消す。残した行・足した行は保存し直す(試合日や相手が変わっても経費の記録がそろう)
+  if (removed.length > 0) await supabase.from("game_costs").delete().in("id", removed.map((c) => c.id));
+  if (removedLedger.length > 0) await supabase.from("ledger_entries").delete().in("id", removedLedger);
+  const game = { id, game_date: parsed.record.game_date, opponent: parsed.record.opponent };
+  for (const cost of costs.values) {
+    const costError = await saveGameCostRecord(supabase, game, cost, cost.id ?? undefined);
+    if (costError) return { values: parsed.values, errors: {}, message: `試合は保存しました。当日のお金: ${costError}` };
+  }
+
   updateTag(STATS_TAG);
+  updateTag(LEDGER_TAG);
   // 予定の試合に結果を入れたら、そのまま参加者の登録へ
   const justFinished = formData.get("previousStatus") === "scheduled" && parsed.record.status === "completed";
   redirect(justFinished ? `/admin/games/${id}/participants` : `/admin/games/${id}`);
