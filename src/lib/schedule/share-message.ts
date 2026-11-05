@@ -37,7 +37,8 @@ function dayLines(d: ScheduleDay): string[] | null {
 }
 
 export function buildScheduleMessage(siteUrl: string, today: string, months: { month: Month; days: ScheduleDay[] }[]): string {
-  const parts = [`【ファンキーズスケジュール】\n◆ファンキーズアプリ\n${siteUrl}/`, `◆試合映像\n${VIDEO_URL}`];
+  // いちばん上にアプリ(ホーム画面に追加の案内)と試合映像、そのあとにスケジュール
+  const parts = [`◆ファンキーズアプリ\n※ホーム画面に追加\n${siteUrl}/`, `◆試合映像\n${VIDEO_URL}`, "【ファンキーズスケジュール】"];
   for (const { month, days } of months) {
     const lines = days
       .filter((d) => d.day >= today)

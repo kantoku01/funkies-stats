@@ -56,8 +56,9 @@ describe("buildScheduleMessage", () => {
     ]);
     expect(text).toBe(
       [
-        "【ファンキーズスケジュール】\n◆ファンキーズアプリ\nhttps://example.com/",
+        "◆ファンキーズアプリ\n※ホーム画面に追加\nhttps://example.com/",
         `◆試合映像\n${VIDEO_URL}`,
+        "【ファンキーズスケジュール】",
         "《11月》\nhttps://example.com/schedule/2026-11",
         "・11/1\n13:00〜15:00\n2026スカイカップ 冬の陣 予選リーグ\n十三公園\nvs 忍spirit",
         "・11/15\n14:00〜16:00 東雲運動広場グラウンド",
