@@ -73,21 +73,45 @@ export async function deleteLedgerEntry(_prev: LedgerActionState, formData: Form
 }
 
 // 立て替えを「今日、部費から精算した」にする
+// together が on なら、同じ人の未精算をまとめて精算する(1回の振込)。
+// 振込手数料は部費で持つので、入れたら「その他(振込手数料)」の支出として精算日に記録する
 export async function settleAdvance(_prev: LedgerActionState, formData: FormData): Promise<LedgerActionState> {
   const id = String(formData.get("id") ?? "");
   await requireEditor("/expenses");
   if (!UUID.test(id)) return { message: "記録が見つかりません。" };
+  const feeRaw = String(formData.get("fee") ?? "")
+    .replace(/[０-９]/g, (c) => String.fromCharCode(c.charCodeAt(0) - 0xfee0))
+    .replace(/[,，円\s]/g, "");
+  const fee = feeRaw === "" ? 0 : Number(feeRaw);
+  if (!Number.isInteger(fee) || fee < 0 || fee > 10000) return { message: "振込手数料は0〜10,000円の数字で入れてください。" };
 
   const supabase = await createClient();
-  const { data, error } = await supabase
+  const { data: target } = await supabase
     .from("ledger_entries")
-    .update({ settled_on: todayInJapan(new Date()) })
+    .select("player_id")
     .eq("id", id)
     .eq("kind", "expense")
-    .not("player_id", "is", null)
     .is("settled_on", null)
-    .select("id");
+    .maybeSingle();
+  if (!target?.player_id) return { message: "精算できませんでした。画面を開き直してください。" };
+
+  const today = todayInJapan(new Date());
+  let query = supabase.from("ledger_entries").update({ settled_on: today }).eq("kind", "expense").is("settled_on", null);
+  query = formData.get("together") === "on" ? query.eq("player_id", target.player_id) : query.eq("id", id);
+  const { data, error } = await query.select("id");
   if (error || !data?.length) return { message: "精算できませんでした。画面を開き直してください。" };
+
+  if (fee > 0) {
+    const { data: player } = await supabase.from("players").select("full_name").eq("id", target.player_id).maybeSingle();
+    const { error: feeError } = await supabase.from("ledger_entries").insert({
+      entry_date: today,
+      kind: "expense",
+      category: "other_expense",
+      amount: fee,
+      memo: `振込手数料(${player?.full_name ?? ""}さんへの精算)`,
+    });
+    if (feeError) return { message: "精算はしましたが、振込手数料の記録に失敗しました。経費の追加から入れてください。" };
+  }
 
   updateTag(LEDGER_TAG);
   return { message: null };

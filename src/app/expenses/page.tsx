@@ -101,7 +101,14 @@ async function ExpensesView({ searchParams }: { searchParams: PageProps<"/expens
                   <span className="font-bold tabular-nums">{formatYen(e.amount)}</span>
                   <EditorOnly>
                     <div className="flex shrink-0 flex-col items-end gap-1">
-                      <SettleButton entryId={e.id} label={`${nameOf.get(e.player_id!)}さんの立て替え ${formatYen(e.amount)}`} />
+                      <SettleButton
+                        entryId={e.id}
+                        label={`${nameOf.get(e.player_id!)}さんの立て替え ${formatYen(e.amount)}`}
+                        siblings={(() => {
+                          const p = summary.pending.find((x) => x.playerId === e.player_id);
+                          return p && p.entries.length > 1 ? { count: p.entries.length, total: formatYen(p.total) } : undefined;
+                        })()}
+                      />
                       <Link href={`/admin/ledger/${e.id}`} className="text-xs text-brand-700">
                         直す ›
                       </Link>
