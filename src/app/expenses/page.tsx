@@ -149,21 +149,6 @@ async function ExpensesView({ searchParams }: { searchParams: PageProps<"/expens
           <Total label="支出" value={summary.season.expense} className="text-red-700" />
           <Total label="差し引き" value={summary.season.income - summary.season.expense} />
         </dl>
-        {summary.season.byCategory.length > 0 && (
-          <ul className="divide-y divide-slate-100 rounded-md border border-slate-200 bg-white text-sm">
-            {summary.season.byCategory.map((c) => (
-              <li key={`${c.kind}:${c.category}`} className="flex justify-between px-3 py-2">
-                <span>
-                  <span className={`mr-2 text-xs ${c.kind === "income" ? "text-emerald-700" : "text-red-700"}`}>
-                    {c.kind === "income" ? "収入" : "支出"}
-                  </span>
-                  {CATEGORY_LABEL[c.category]}
-                </span>
-                <span className="tabular-nums">{formatYen(c.total)}</span>
-              </li>
-            ))}
-          </ul>
-        )}
         <p className="text-xs text-slate-500">支出には、まだ精算していない立て替えも含みます。</p>
       </section>
 
