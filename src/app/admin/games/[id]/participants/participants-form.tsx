@@ -28,6 +28,17 @@ export function ParticipantsForm({ gameId, candidates }: { gameId: string; candi
     Object.fromEntries(candidates.map((c) => [c.playerId, c.battingOrder])),
   );
 
+  // 打順の重なり(選んでいる人だけ)。入れた時点で知らせる
+  const toHalf = (s: string) => s.trim().replace(/[０-９]/g, (c) => String.fromCharCode(c.charCodeAt(0) - 0xfee0));
+  const byOrder = new Map<string, string[]>();
+  for (const c of candidates) {
+    const o = toHalf(orders[c.playerId] ?? "");
+    if (checked.has(c.playerId) && o !== "") byOrder.set(o, [...(byOrder.get(o) ?? []), c.playerId]);
+  }
+  const duplicated = [...byOrder.entries()].filter(([, ids]) => ids.length > 1);
+  const duplicatedIds = new Set(duplicated.flatMap(([, ids]) => ids));
+  const nameOf = (id: string) => candidates.find((c) => c.playerId === id)?.name ?? "";
+
   const toggle = (id: string) =>
     setChecked((prev) => {
       const next = new Set(prev);
@@ -96,7 +107,10 @@ export function ParticipantsForm({ gameId, candidates }: { gameId: string; candi
                       inputMode="numeric"
                       maxLength={2}
                       aria-label={`${c.name}の打順`}
-                      className="min-h-11 w-12 rounded-md border border-slate-300 bg-white text-center text-base"
+                      aria-invalid={duplicatedIds.has(c.playerId) || undefined}
+                      className={`min-h-11 w-12 rounded-md border bg-white text-center text-base ${
+                        duplicatedIds.has(c.playerId) ? "border-red-500 bg-red-50 text-red-700" : "border-slate-300"
+                      }`}
                     />
                   </label>
                 )}
@@ -117,6 +131,17 @@ export function ParticipantsForm({ gameId, candidates }: { gameId: string; candi
 
       {/* 主要操作は片手で届く画面下部に固定する */}
       <div className="fixed inset-x-0 bottom-0 border-t border-slate-200 bg-white/95 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+        {/* 保存ボタンのすぐ上に、保存できない理由を出す(画面の上のメッセージは見落としやすい) */}
+        {(duplicated.length > 0 || state.message) && (
+          <div role="alert" className="mx-auto mb-2 max-w-3xl space-y-0.5 text-sm text-red-700">
+            {duplicated.map(([order, ids]) => (
+              <p key={order}>
+                打順 {order} が重なっています({ids.map(nameOf).join("・")})
+              </p>
+            ))}
+            {duplicated.length === 0 && state.message && <p>{state.message}</p>}
+          </div>
+        )}
         <div className="mx-auto flex max-w-3xl items-center gap-3">
           <span className="text-sm text-slate-600">{checked.size}人を選択中</span>
           <button
