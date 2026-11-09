@@ -10,6 +10,7 @@ const game: LineMessageGame = {
   venue_map_url: "https://maps.app.goo.gl/abc",
   uniform: "青",
   bring_bases: false,
+  dispatched_umpire: true,
   memo: null,
   game_type: "official",
   tournament: { name: "2026スカイカップ 冬の陣" },
@@ -44,6 +45,7 @@ describe("buildLineMessage", () => {
         "◆スケジュール\n12:10 球場集合\n13:00 試合開始\n15:00 試合終了",
         "◆ユニフォーム\n青",
         "◆ベース\n不要",
+        "◆派遣審判\n有り",
         "◆マネージャー\n無し",
         "◆配車\n☆配車グループA\n小林\n\n☆配車グループB\n安達\n森(陽)\n\n☆個別\n宮川\n森(郁)",
       ].join("\n\n"),
@@ -69,6 +71,6 @@ describe("buildLineMessage", () => {
 describe("当日のお金", () => {
   test("ベースのあとに入る", () => {
     const text = buildLineMessage(game, members, shortNames(members), ["審判代 7,000円 / 支払い未定", "こちらの負担 合計 7,000円"]);
-    expect(text).toContain("◆ベース\n不要\n\n◆当日のお金\n審判代 7,000円 / 支払い未定\nこちらの負担 合計 7,000円\n\n◆マネージャー");
+    expect(text).toContain("◆ベース\n不要\n\n◆派遣審判\n有り\n\n◆当日のお金\n審判代 7,000円 / 支払い未定\nこちらの負担 合計 7,000円\n\n◆マネージャー");
   });
 });

@@ -94,6 +94,7 @@ export type Database = {
           venue_map_url: string | null; // 場所の Google マップの URL
           uniform: string | null;
           bring_bases: boolean | null;
+          dispatched_umpire: boolean | null; // 派遣審判: 有り / 無し / 未定(null)
           game_type: GameType;
           tournament_id: string | null;
           stage: GameStage | null;
@@ -116,6 +117,7 @@ export type Database = {
           venue_map_url?: string | null;
           uniform?: string | null;
           bring_bases?: boolean | null;
+          dispatched_umpire?: boolean | null;
           game_type?: GameType;
           tournament_id?: string | null;
           stage?: GameStage | null;

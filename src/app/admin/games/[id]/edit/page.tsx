@@ -53,6 +53,7 @@ export default async function EditGamePage({ params, searchParams }: PageProps<"
           venueMapUrl: g.venue_map_url ?? "",
           uniform: g.uniform ?? "",
           bringBases: g.bring_bases === null ? "" : g.bring_bases ? "need" : "none",
+          umpire: g.dispatched_umpire === null ? "" : g.dispatched_umpire ? "yes" : "no",
           gameDate: g.game_date,
           opponent: g.opponent ?? "",
           teamScore: g.team_score?.toString() ?? "",

@@ -7,6 +7,7 @@ export type ScheduleInfo = {
   venueMapUrl?: string | null;
   uniform: string | null;
   bringBases: boolean | null;
+  umpire?: boolean | null;
 };
 
 // 試合予定の情報(集合・開始・場所・ユニフォーム・ベース持参)。入っている項目だけ出す
@@ -18,6 +19,7 @@ export function GameScheduleInfo({ info, className = "" }: { info: ScheduleInfo;
     ["場所", info.venue],
     ["ユニフォーム", info.uniform],
     ["ベース持参", info.bringBases === null ? null : info.bringBases ? "必要" : "不要"],
+    ["派遣審判", info.umpire === undefined || info.umpire === null ? null : info.umpire ? "有り" : "無し"],
   ].filter((r): r is [string, string] => Boolean(r[1]));
   if (rows.length === 0) return null;
   return (
@@ -46,6 +48,7 @@ export const scheduleOf = (g: {
   venue_map_url?: string | null;
   uniform: string | null;
   bring_bases: boolean | null;
+  dispatched_umpire?: boolean | null;
 }): ScheduleInfo => ({
   startTime: g.start_time,
   meetTime: g.meet_time,
@@ -53,4 +56,5 @@ export const scheduleOf = (g: {
   venueMapUrl: g.venue_map_url ?? null,
   uniform: g.uniform,
   bringBases: g.bring_bases,
+  umpire: g.dispatched_umpire ?? null,
 });

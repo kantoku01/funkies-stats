@@ -45,6 +45,7 @@ export default async function NewGamePage({ searchParams }: PageProps<"/admin/ga
           venueMapUrl: (fromNote.venue && venues.find((x) => x.venue === fromNote.venue)?.mapUrl) || "",
           uniform: "",
           bringBases: "",
+          umpire: "",
           gameDate: dateParam ?? todayInJapan(new Date()),
           opponent: "",
           teamScore: "",

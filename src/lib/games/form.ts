@@ -9,6 +9,7 @@ export type GameFormValues = {
   venueMapUrl: string; // Google マップの URL(任意)
   uniform: string;
   bringBases: "" | "need" | "none"; // ベース持参: 必要 / 不要 / 未定
+  umpire: "" | "yes" | "no"; // 派遣審判: 有り / 無し / 未定
   opponent: string;
   teamScore: string;
   opponentScore: string;
@@ -32,6 +33,7 @@ export type GameRecord = {
   venue_map_url: string | null;
   uniform: string | null;
   bring_bases: boolean | null;
+  dispatched_umpire: boolean | null;
   game_date: string;
   opponent: string | null;
   team_score: number | null;
@@ -128,6 +130,7 @@ export function parseGameForm(formData: FormData): ParsedGameForm {
     venueMapUrl: str("venueMapUrl"),
     uniform: str("uniform"),
     bringBases: bases === "need" || bases === "none" ? bases : "",
+    umpire: str("umpire") === "yes" || str("umpire") === "no" ? (str("umpire") as "yes" | "no") : "",
     opponent: str("opponent").replace(/[\s　]+/g, " "),
     teamScore: toHalfWidth(str("teamScore")),
     opponentScore: toHalfWidth(str("opponentScore")),
@@ -203,6 +206,7 @@ export function parseGameForm(formData: FormData): ParsedGameForm {
       venue_map_url: values.venueMapUrl || null,
       uniform: values.uniform || null,
       bring_bases: values.bringBases === "" ? null : values.bringBases === "need",
+      dispatched_umpire: values.umpire === "" ? null : values.umpire === "yes",
       game_date: values.gameDate,
       opponent: values.opponent || null,
       // 予定・雨天中止の試合はスコアと勝敗を持たない

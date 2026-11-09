@@ -219,6 +219,7 @@ async function GameAttendance({ game: g }: { game: GameDetail }) {
       venue_map_url: g.schedule.venueMapUrl,
       uniform: g.schedule.uniform,
       bring_bases: g.schedule.bringBases,
+      dispatched_umpire: g.schedule.umpire,
       memo: g.memo,
     },
     active

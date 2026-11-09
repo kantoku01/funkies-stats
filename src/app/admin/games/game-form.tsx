@@ -60,6 +60,7 @@ function GameFormFields({
   const [gameDate, setGameDate] = useState(v.gameDate);
   const [status, setStatus] = useState(v.status);
   const [bringBases, setBringBases] = useState(v.bringBases);
+  const [umpire, setUmpire] = useState(v.umpire);
   const [uniform, setUniform] = useState(v.uniform);
   const [mapUrl, setMapUrl] = useState(v.venueMapUrl);
   const [startTime, setStartTime] = useState(v.startTime);
@@ -229,6 +230,24 @@ function GameFormFields({
           </div>
         </fieldset>
       </div>
+
+      <fieldset className="space-y-1">
+        <legend className="text-sm font-medium">派遣審判</legend>
+        <div className="grid grid-cols-3 gap-1">
+          {(
+            [
+              ["yes", "有り"],
+              ["no", "無し"],
+              ["", "未定"],
+            ] as const
+          ).map(([value, label]) => (
+            <label key={label} className={TOGGLE}>
+              <input type="radio" name="umpire" value={value} checked={umpire === value} onChange={() => setUmpire(value)} className="sr-only" />
+              {label}
+            </label>
+          ))}
+        </div>
+      </fieldset>
 
       {costMembers && <CostRows members={costMembers} initial={v.costs} />}
 

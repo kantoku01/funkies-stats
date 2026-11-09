@@ -27,6 +27,7 @@ describe("parseGameForm", () => {
       venue_map_url: null,
       uniform: null,
       bring_bases: null,
+      dispatched_umpire: null,
       game_date: "2026-09-20",
       opponent: null,
       team_score: null,

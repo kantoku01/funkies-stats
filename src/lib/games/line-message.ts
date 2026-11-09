@@ -14,6 +14,7 @@ export type LineMessageGame = GameTypeInfo & {
   venue_map_url: string | null;
   uniform: string | null;
   bring_bases: boolean | null;
+  dispatched_umpire?: boolean | null;
   memo: string | null;
 };
 
@@ -74,6 +75,7 @@ export function buildLineMessage(
     ["◆スケジュール", ...schedule],
     ["◆ユニフォーム", g.uniform ?? "未定"],
     ["◆ベース", g.bring_bases === null ? "未定" : g.bring_bases ? "必要" : "不要"],
+    ["◆派遣審判", g.dispatched_umpire == null ? "未定" : g.dispatched_umpire ? "有り" : "無し"],
     ...(money.length > 0 ? [["◆当日のお金", ...money]] : []),
     ["◆マネージャー", managers.length > 0 ? managers.join("、") : "無し"],
     ["◆配車", carpool.join("\n\n")],

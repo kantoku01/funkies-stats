@@ -34,6 +34,7 @@ export type GameDetail = {
     venueMapUrl: string | null;
     uniform: string | null;
     bringBases: boolean | null;
+    umpire: boolean | null;
   };
   typeInfo: GameTypeInfo;
   lines: GameLine[]; // 打順 → 背番号 → 助っ人の順
@@ -49,7 +50,7 @@ export async function getGameDetail(id: string): Promise<GameDetail | null> {
   const { data: game, error } = await supabase
     .from("games")
     .select(
-      "id, season, game_date, opponent, team_score, opponent_score, result, memo, status, start_time, meet_time, venue, venue_map_url, uniform, bring_bases, game_type, stage, round_label, tournament:tournaments(name)",
+      "id, season, game_date, opponent, team_score, opponent_score, result, memo, status, start_time, meet_time, venue, venue_map_url, uniform, bring_bases, dispatched_umpire, game_type, stage, round_label, tournament:tournaments(name)",
     )
     .eq("id", id)
     .maybeSingle();
@@ -120,6 +121,7 @@ export async function getGameDetail(id: string): Promise<GameDetail | null> {
       venueMapUrl: game.venue_map_url,
       uniform: game.uniform,
       bringBases: game.bring_bases,
+      umpire: game.dispatched_umpire,
     },
     typeInfo: { game_type: game.game_type, stage: game.stage, round_label: game.round_label, tournament: game.tournament },
     lines,
