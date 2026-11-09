@@ -116,7 +116,8 @@ export async function updateGame(_prev: GameFormState, formData: FormData): Prom
   updateTag(LEDGER_TAG);
   // 予定の試合に結果を入れたら、そのまま参加者の登録へ
   const justFinished = formData.get("previousStatus") === "scheduled" && parsed.record.status === "completed";
-  redirect(justFinished ? `/admin/games/${id}/participants` : `/admin/games/${id}`);
+  if (justFinished) redirect(`/admin/games/${id}/participants`);
+  redirect(formData.get("returnTo") === "game" ? `/games/${id}` : `/admin/games/${id}`);
 }
 
 export type DeleteGameState = { message: string | null };

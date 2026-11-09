@@ -67,7 +67,8 @@ export default async function EditGamePage({ params, searchParams }: PageProps<"
           roundLabel: g.round_label ?? "",
           costs: JSON.stringify(costRows),
         }}
-        cancelHref={`/admin/games/${g.id}`}
+        cancelHref={query.from === "game" ? `/games/${g.id}` : `/admin/games/${g.id}`}
+        returnTo={query.from === "game" ? "game" : undefined}
         submitLabel="保存する"
       />
     </section>

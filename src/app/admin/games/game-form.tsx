@@ -17,6 +17,7 @@ type Props = {
   venues: { venue: string; mapUrl: string | null }[]; // これまでの場所(地図の URL を引き継ぐ)
   costMembers?: { id: string; name: string }[]; // 渡したときだけ、当日のお金もまとめて入れられる(試合の追加)
   cancelHref: string;
+  returnTo?: "game"; // 保存したら試合の画面(公開側)に戻る
   submitLabel: string;
   scheduleDay?: string; // 活動予定から試合の予定にするとき、その日付(保存したらメモの時間・場所を消す)
 };
@@ -48,6 +49,7 @@ function GameFormFields({
   venues,
   costMembers,
   cancelHref,
+  returnTo,
   submitLabel,
   state,
   formAction,
@@ -83,6 +85,7 @@ function GameFormFields({
     <form action={formAction} className="space-y-5" noValidate>
       {gameId && <input type="hidden" name="id" value={gameId} />}
       {gameId && <input type="hidden" name="previousStatus" value={initialStatus} />}
+      {returnTo && <input type="hidden" name="returnTo" value={returnTo} />}
       {scheduleDay && <input type="hidden" name="scheduleDay" value={scheduleDay} />}
       {state.message && (
         <p role="alert" className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-800">

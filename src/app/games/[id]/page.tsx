@@ -168,7 +168,8 @@ async function GameDetailView({ params }: { params: PageProps<"/games/[id]">["pa
 async function EditLink({ gameId }: { gameId: string }) {
   if (!(await getCurrentEditor())) return null;
   return (
-    <Link href={`/admin/games/${gameId}`} className="flex min-h-11 items-center rounded-md border border-slate-300 bg-white px-3 text-sm">
+    // 試合情報の編集へ直接。保存・キャンセルでこの画面に戻る
+    <Link href={`/admin/games/${gameId}/edit?from=game`} className="flex min-h-11 items-center rounded-md border border-slate-300 bg-white px-3 text-sm">
       編集
     </Link>
   );
